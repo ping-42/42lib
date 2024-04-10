@@ -21,12 +21,9 @@ jobs:
   vettest:
     name: Go quality vetting and testing
     runs-on: ubuntu-22.04
-    env:
-      GOPRIVATE: github.com/ping-42/*
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
 
       - name: Setting up Go
         uses: actions/setup-go@v5
@@ -34,13 +31,6 @@ jobs:
           go-version-file: go.mod
           check-latest: true
         id: go
-
-      - name: Configuring git for private modules...
-        shell: bash
-        env:
-          TOKEN: ${{ github.token }}
-        run: |
-          git config --global url."https://github-actions:${TOKEN}@github.com".insteadOf "https://github.com"
 
       - name: Getting dependencies...
         shell: bash
@@ -62,8 +52,6 @@ jobs:
   golangci:
     name: Static analysis via golangci-lint
     runs-on: ubuntu-22.04
-    env:
-      GOPRIVATE: github.com/ping-42/*
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,13 +63,6 @@ jobs:
           check-latest: true
         id: go
 
-      - name: Configuring git for private modules...
-        shell: bash
-        env:
-          TOKEN: ${{ github.token }}
-        run: |
-          git config --global url."https://github-actions:${TOKEN}@github.com".insteadOf "https://github.com"
-
       - name: Getting dependencies...
         shell: bash
         run: |
@@ -90,14 +71,13 @@ jobs:
       - name: Run golangci-lint linter
         uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.55.2
+          version: latest
           args: --timeout 5m -v
 
   gosec:
     name: Static analysis via gosec
     runs-on: ubuntu-22.04
     env:
-      GOPRIVATE: github.com/ping-42/*
       GO111MODULE: on
     steps:
       - name: Checkout code
@@ -109,13 +89,6 @@ jobs:
           go-version-file: go.mod
           check-latest: true
         id: go
-
-      - name: Configuring git for private modules...
-        shell: bash
-        env:
-          TOKEN: ${{ github.token }}
-        run: |
-          git config --global url."https://github-actions:${TOKEN}@github.com".insteadOf "https://github.com"
 
       - name: Run Gosec...
         shell: bash
@@ -141,13 +114,6 @@ jobs:
           go-version-file: go.mod
           check-latest: true
 
-      - name: Configuring git for private modules...
-        shell: bash
-        env:
-          TOKEN: ${{ github.token }}
-        run: |
-          git config --global url."https://github-actions:${TOKEN}@github.com".insteadOf "https://github.com"
-
       - name: Govuln check
         shell: bash
         run: |
@@ -160,8 +126,6 @@ jobs:
     needs: [vettest,golangci,gosec,govuln]
     permissions:
       contents: write
-    env:
-      GOPRIVATE: github.com/ping-42/*
     if:
       contains('
         refs/heads/master
