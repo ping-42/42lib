@@ -1,0 +1,131 @@
+// VSCode Devcontainer config
+// https://containers.dev/
+{
+  "name": "ping42-golang-infra",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // New Features-based devcontainer setup
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "installOhMyZshConfig": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.22"
+    },
+    "ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+      "plugins": "ssh-agent gh vscode golang",
+      "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-syntax-highlighting",
+      "username": "vscode"
+    },
+    "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
+    "ghcr.io/guiyomh/features/golangci-lint:0": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers-contrib/features/gh-cli:1": {},
+    "ghcr.io/dhoeric/features/google-cloud-cli:1": {
+      "version": "latest"
+    },
+    // Ubuntu apt-get packages to install
+    "ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {
+      "packages": "iputils-ping"
+    },
+    // Docker Compose and friends
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "dockerDashComposeVersion": "v2"
+    }
+  },
+
+  // See here for devcontainer lifecycle docs
+  // https://containers.dev/implementors/json_reference/#_lifecycle-scripts
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": ".devcontainer/create.sh",
+
+  // Update codespace and stuff on startup
+  "postStartCommand": ".devcontainer/update.sh",
+
+  // NOTE: that sudo still works...
+  "remoteUser": "vscode",
+  // "workspaceMount": "source=${localWorkspaceFolder}/42lib,target=/workspaces,type=bind,consistency=delegated",
+  // "workspaceFolder": "/workspaces",
+  "mounts": [
+    "type=volume,source=gh-auth-config,target=/home/vscode/.config/gh"
+    // "type=volume,source=dev-workspace,target=/workspaces"
+    //   "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached"
+  ],
+
+  // Configure tool-specific properties.
+  "customizations": {
+    // Configure codespace org permissions
+    // https://docs.github.com/en/codespaces/managing-your-codespaces/managing-repository-access-for-your-codespaces
+    "codespaces": {
+      "repositories": {
+        "ping-42/42lib": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
+        },
+        "ping-42/sensor": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
+        },
+        "ping-42/server": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
+        },
+        "ping-42/scheduler": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
+        }
+      },
+      // Shut up the annoying message on bootup, courtesy of a permission bug - see update.sh
+      "devcontainerChangedNotificationStyle": "none"
+    },
+    // // Configure properties specific to VS Code.
+    // "containerEnv": {
+    //   //   "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+    //   //   "GITHUB_USER": "${localEnv:GITHUB_USER}"
+    // },
+
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "trunk.io",
+        "vscode-icons-team.vscode-icons",
+        "yzhang.markdown-all-in-one",
+        "github.vscode-github-actions",
+        "ms-vscode-remote.remote-containers",
+        "ms-azuretools.vscode-docker",
+        "cweijan.vscode-database-client2"
+      ]
+    }
+  },
+  "remoteEnv": {
+    // POSTGRE
+    "POSTGRES_HOST":"127.0.0.1",
+    "POSTGRES_USER":"ping42",
+    "POSTGRES_DB": "ping42",
+    "POSTGRES_PASSWORD":"ping42.eth.postgres",
+
+    // REDIS
+    "REDIS_HOST":"localhost:6379",
+    "REDIS_PASSWORD":"ping42.eth.redis",
+
+    // SENSOR TOKEN - USED FOR DEVELOPMENT
+    "PING42_SENSOR_TOKEN":"YjlkYzNkMjAtMjU2Yi00YWM3LThjYWUtMmY2ZGM5NjJlMTgzLnNlbnNvclNlY3JldDEyMyE="
+  }
+}

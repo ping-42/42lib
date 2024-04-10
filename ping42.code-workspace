@@ -1,0 +1,70 @@
+{
+	"folders": [
+		{
+			"name": "42lib Library",
+			"path": "."
+		},
+		{
+			"name": "Server",
+			"path": "/workspaces/server"
+		},
+		{
+			"name": "Sensor",
+			"path": "/workspaces/sensor"
+		},
+		{
+			"name": "Scheduler",
+			"path": "/workspaces/scheduler"
+		}
+	],
+	"launch": {
+		"configurations": [
+			{
+				"name": "Sensor",
+				"type": "go",
+				"request": "launch",
+				"mode": "auto",
+				"program": "/workspaces/sensor/"
+			},
+			{
+				"name": "Server",
+				"type": "go",
+				"request": "launch",
+				"mode": "auto",
+				"program": "/workspaces/server/server/"
+			},
+			{
+				"name": "Scheduler",
+				"type": "go",
+				"request": "launch",
+				"mode": "auto",
+				"program": "/workspaces/scheduler/scheduler"
+			}
+		]
+	},
+	"settings": {
+		"terminal.integrated.defaultProfile.linux": "zsh",
+		"terminal.integrated.profiles.linux": {
+			"zsh": {
+				"path": "/bin/zsh"
+			},
+		},
+		"[go]": {
+			"editor.insertSpaces": true,
+			"editor.formatOnSave": true,
+			"editor.defaultFormatter": "golang.go"
+		},
+		"git.enableCommitSigning": true,
+	},
+	"extensions": {
+		"recommendations": [
+			"golang.go",
+			"trunk.io",
+			"vscode-icons-team.vscode-icons",
+			"yzhang.markdown-all-in-one",
+			"github.vscode-github-actions",
+			"ms-vscode-remote.remote-containers",
+			"ms-azuretools.vscode-docker"
+		]
+	},
+}
