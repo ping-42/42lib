@@ -23,6 +23,7 @@ var timeout = time.Duration(20 * time.Second)
 // dnsQueryTCP4 establishes connection to the specified name server
 // over tcp and queries the specified host.
 func (t task) dnsQueryTCP4(ctx context.Context, nameserver DnsNameServer) (Result, error) {
+	// TODO: pass the context down the line
 	var ret = Result{
 		Proto: "tcp4",
 	}
