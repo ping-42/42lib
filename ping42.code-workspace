@@ -31,7 +31,7 @@
 				"type": "go",
 				"request": "launch",
 				"mode": "auto",
-				"program": "/workspaces/server/server/"
+				"program": "/workspaces/server/"
 			},
 			{
 				"name": "Scheduler",
