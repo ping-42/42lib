@@ -36,7 +36,8 @@ func (t task) Run(ctx context.Context) (res []byte, err error) {
 		return
 	}
 	result.ResponseBody = string(respBody)
-	result.ResponseCode = int8(resDo.StatusCode)
+	result.ResponseCode = resDo.StatusCode
+	result.ResponseHeaders = resDo.Header
 
 	err = resDo.Body.Close()
 	if err != nil {
