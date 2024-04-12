@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ping-42/42lib/constants"
 	"github.com/ping-42/42lib/logger"
 
 	"github.com/miekg/dns"
@@ -25,7 +26,7 @@ var timeout = time.Duration(20 * time.Second)
 func (t task) dnsQueryTCP4(ctx context.Context, nameserver DnsNameServer) (Result, error) {
 	// TODO: pass the context down the line
 	var ret = Result{
-		Proto: "tcp4",
+		Proto: constants.ProtoTCP,
 	}
 	var err error
 	dnsLogger = dnsLogger.WithFields(log.Fields{

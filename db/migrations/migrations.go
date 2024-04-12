@@ -47,6 +47,7 @@ func migrate(db *gorm.DB) error {
 					// &models.SensorSupportedTaskTypes{},
 					&models.TsHostRuntimeStat{},
 					&models.TsDnsResult{},
+					&models.TsDnsResultAnswer{},
 					&models.TsHttpResult{},
 					&models.TsIcmpResult{},
 				)
@@ -57,7 +58,13 @@ func migrate(db *gorm.DB) error {
 				// hypertables for timeseries data
 				err = tx.Exec(`
 					SELECT create_hypertable('ts_host_runtime_stats', by_range('time'));
-					SELECT create_hypertable('ts_dns_results', by_range('time'));`).Error
+					--
+					SELECT create_hypertable('ts_dns_results', by_range('time'));
+					SELECT create_hypertable('ts_dns_results_answer', by_range('time'));
+					--
+					SELECT create_hypertable('ts_http_results', by_range('time'));
+					--
+					SELECT create_hypertable('ts_icmp_results', by_range('time'));`).Error
 				if err != nil {
 					return err
 				}
@@ -65,7 +72,18 @@ func migrate(db *gorm.DB) error {
 				// indices
 				err = tx.Exec(`
 					CREATE INDEX idx_runtime_sensor_time ON ts_host_runtime_stats (sensor_id, time DESC);
-					CREATE INDEX idx_dns_results_sensor_time ON ts_dns_results (sensor_id, time DESC);`).Error
+					CREATE INDEX idx_runtime_task_time ON ts_host_runtime_stats (task_id, time DESC);
+					--
+					CREATE INDEX idx_dns_results_sensor_time ON ts_dns_results (sensor_id, time DESC);
+					CREATE INDEX idx_dns_results_answer_sensor_time ON ts_dns_results_answer (sensor_id, time DESC);
+					CREATE INDEX idx_dns_results_task_time ON ts_dns_results (task_id, time DESC);
+					CREATE INDEX idx_dns_results_answer_task_time ON ts_dns_results_answer (task_id, time DESC);
+					--
+					CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
+					CREATE INDEX idx_http_results_task_time ON ts_http_results (task_id, time DESC);
+					--
+					CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
+					CREATE INDEX idx_icmp_results_task_time ON ts_icmp_results (task_id, time DESC);`).Error
 				if err != nil {
 					return err
 				}
@@ -136,7 +154,7 @@ INSERT INTO clients(id, name, email) VALUES (1, 'Test Client', 'test_client@gmai
 -----client_subscriptions-----
 INSERT INTO client_subscriptions(id, client_id, task_type_id, tests_count_subscribed, tests_count_executed, period, last_execution_completed, opts, is_active) VALUES (1, 1, 1, 9999, 0, 60, NULL, '{"Host":"https://google.com", "Proto":"udp"}', TRUE);
 INSERT INTO client_subscriptions(id, client_id, task_type_id, tests_count_subscribed, tests_count_executed, period, last_execution_completed, opts, is_active) VALUES (2, 1, 2, 9999, 0, 60, NULL, '{"TargetDomain":"","TargetIPs":["127.0.0.1"],"Count":3,"Payload":"MDgwOTBhMGIwYzBkMGUwZjEwMTExMjEzMTQxNTE2MTcxODE5MWExYjFjMWQxZTFmMjAyMTIyMjMyNDI1MjYyNzI4MjkyYTJiMmMyZDJlMmYzMDMxMzIzMzM0MzUzNjM3"}', TRUE);
-INSERT INTO client_subscriptions(id, client_id, task_type_id, tests_count_subscribed, tests_count_executed, period, last_execution_completed, opts, is_active) VALUES (3, 1, 3, 9999, 0, 60, NULL, '{"TargetDomain":"https://google.com","HttpMethod":"GET","RequestHeaders":{"Content-Type":["application/json"]},"RequestBody":"c29tZSB0ZXN0IGJvZHk=","ResultWithResponseBody":true,"ResultWithResponseHeaders":true}', TRUE);
+INSERT INTO client_subscriptions(id, client_id, task_type_id, tests_count_subscribed, tests_count_executed, period, last_execution_completed, opts, is_active) VALUES (3, 1, 3, 9999, 0, 60, NULL, '{"TargetDomain":"https://google.com","HttpMethod":"GET","RequestHeaders":{"Content-Type":["application/json"]},"RequestBody":"c29tZSB0ZXN0IGJvZHk="}', TRUE);
 `
 
 //INSERT INTO client_subscriptions(id, client_id, task_type_id, tests_count_subscribed, tests_count_executed, period, last_execution_completed, opts, is_active) VALUES (1, 1, 2, 9999, 0, 60, NULL, '{"TargetDomain":null,"TargetIPs":["127.0.0.1"],"Count":3,"Payload":"MDgwOTBhMGIwYzBkMGUwZjEwMTExMjEzMTQxNTE2MTcxODE5MWExYjFjMWQxZTFmMjAyMTIyMjMyNDI1MjYyNzI4MjkyYTJiMmMyZDJlMmYzMDMxMzIzMzM0MzUzNjM3"}', TRUE);

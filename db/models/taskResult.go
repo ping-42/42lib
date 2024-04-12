@@ -7,16 +7,29 @@ import (
 
 type TsDnsResult struct {
 	TsSensorTaskBase
-	QueryRtt    int64
-	SocketRtt   int64
-	RespSize    int64
-	Proto       int64
-	IPAddresses []net.IP `gorm:"type:inet[]"`
+	QueryRtt  int64
+	SocketRtt int64
+	RespSize  int64
+	Proto     int8
+}
+
+type TsDnsResultAnswer struct {
+	TsSensorTaskBase
+	HdrName     string
+	HdrRrtype   uint16
+	HdrClass    uint16
+	HdrTtl      uint32
+	HdrRdlength uint16
+	A           net.IP `gorm:"type:inet"`
+}
+
+func (TsDnsResultAnswer) TableName() string {
+	return "ts_dns_results_answer"
 }
 
 type TsHttpResult struct {
 	TsSensorTaskBase
-	ResponseCode     uint8
+	ResponseCode     int
 	DNSLookup        time.Duration
 	TCPConnection    time.Duration
 	TLSHandshake     time.Duration

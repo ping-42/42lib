@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/miekg/dns"
+	"github.com/ping-42/42lib/constants"
 	"github.com/ping-42/42lib/logger"
 	log "github.com/sirupsen/logrus"
 )
@@ -14,7 +15,7 @@ const udpProto = "udp4"
 
 func (t task) dnsQueryUDP4(ctx context.Context, nameserver DnsNameServer) (Result, error) {
 	var ret = Result{
-		Proto: udpProto,
+		Proto: constants.ProtoUDP,
 	}
 
 	dnsLogger = dnsLogger.WithFields(log.Fields{

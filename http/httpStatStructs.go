@@ -25,10 +25,6 @@ type Opts struct {
 	HttpMethod     string
 	RequestHeaders http.Header
 	RequestBody    []byte
-
-	// specify if the client is intrested of the body & headers
-	ResultWithResponseBody    bool
-	ResultWithResponseHeaders bool
 }
 
 // GetId gets the id of the task, as received by the server
@@ -46,9 +42,9 @@ func (t task) GetSensorId() uuid.UUID {
 
 // Result stores httpstat info. // TODO: no need to pass around as argument, just return?
 type Result struct {
-	ResponseCode    int8
+	ResponseCode    int
 	ResponseBody    string
-	ResponseHeaders []http.Header
+	ResponseHeaders http.Header
 
 	// Durations for each phase
 	DNSLookup        time.Duration

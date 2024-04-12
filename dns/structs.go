@@ -97,7 +97,7 @@ type Result struct {
 	QueryRtt time.Duration
 	SockRtt  time.Duration
 	RespSize int64
-	Proto    string
+	Proto    int8
 	AnswerA  []*dns.A
 }
 
