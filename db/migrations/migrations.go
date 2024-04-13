@@ -72,18 +72,15 @@ func migrate(db *gorm.DB) error {
 				// indices
 				err = tx.Exec(`
 					CREATE INDEX idx_runtime_sensor_time ON ts_host_runtime_stats (sensor_id, time DESC);
-					CREATE INDEX idx_runtime_task_time ON ts_host_runtime_stats (task_id, time DESC);
 					--
 					CREATE INDEX idx_dns_results_sensor_time ON ts_dns_results (sensor_id, time DESC);
 					CREATE INDEX idx_dns_results_answer_sensor_time ON ts_dns_results_answer (sensor_id, time DESC);
-					CREATE INDEX idx_dns_results_task_time ON ts_dns_results (task_id, time DESC);
-					CREATE INDEX idx_dns_results_answer_task_time ON ts_dns_results_answer (task_id, time DESC);
+					-- CREATE INDEX idx_dns_results_task ON ts_dns_results (task_id);
+					-- CREATE INDEX idx_dns_results_answer_task ON ts_dns_results_answer (task_id);
 					--
 					CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
-					CREATE INDEX idx_http_results_task_time ON ts_http_results (task_id, time DESC);
 					--
-					CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
-					CREATE INDEX idx_icmp_results_task_time ON ts_icmp_results (task_id, time DESC);`).Error
+					CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);`).Error
 				if err != nil {
 					return err
 				}
