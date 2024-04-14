@@ -15,15 +15,21 @@ type task struct {
 	Opts `json:"Opts"`
 }
 
-// Opts
+// Opts holds all of the options for the traceroute task
 type Opts struct {
-	Port       int     `json:"Port"`
-	Dest       [4]byte `json:"Dest"`
-	FirstHop   int     `json:"FirstHop"`
-	MaxHops    int     `json:"MaxHops"`
-	Timeout    int     `json:"Timeout"`
-	Packetsize int     `json:"PacketSize"`
-	Retries    int     `json:"Retries"`
+	Port          int      `json:"Port"`
+	Dest          [4]byte  `json:"Dest"`
+	CurrentAddr   [4]byte  `json:"CurrentAddr"`
+	CurrentHost   []string `json:"CurrentHost"`
+	ReceiveSocket int      `json:"ReceiveSocket"`
+	SendSocket    int      `json:"SendSocket"`
+	FirstHop      int      `json:"FirstHop"`
+	MaxHops       int      `json:"MaxHops"`
+	Timeout       int      `json:"Timeout"`
+	Packetsize    int      `json:"PacketSize"`
+	Packet        []byte
+	TTL           int `json:"Ttl"`
+	Retries       int `json:"Retries"`
 }
 
 // GetId gets the id of the task, as received by the server
@@ -47,6 +53,7 @@ type Hop struct {
 	BytesReceived int
 	ElapsedTime   time.Duration
 	TTL           int
+	Error         error
 }
 
 type Result struct {
