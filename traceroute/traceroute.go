@@ -3,7 +3,6 @@ package traceroute
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"syscall"
@@ -109,51 +108,59 @@ func (t task) socketAddr() (addr [4]byte, err error) {
 
 // runHop takes the task context, does the actual hop operations and returns a completed hop with stats or an error
 func (t task) runHop(ctx context.Context) (hop Hop, err error) {
+	retries := 0
 	start := time.Now()
 
-	// set the current hop TTL
-	err = syscall.SetsockoptInt(t.SendSocket, 0x0, syscall.IP_TTL, t.TTL)
-	if err != nil {
-		hop.Error = err
-		loggerTraceroute.Infof("hop: %+v", hop)
-		return hop, err
-	}
+	for retries <= t.Retries {
+		err = syscall.SetsockoptInt(t.SendSocket, 0x0, syscall.IP_TTL, t.TTL)
+		if err != nil {
+			hop.Error = err
+			return hop, err
+		}
 
-	// send a single null byte to the destination
-	err = syscall.Sendto(t.SendSocket, []byte{0}, 0, &syscall.SockaddrInet4{Port: t.Port, Addr: t.Dest})
-	if err != nil {
-		hop.Error = err
-		loggerTraceroute.Errorf("hop: %+v", hop)
-		return hop, err
-	}
-	// receive the ICMP response
-	bReceived, from, err := syscall.Recvfrom(t.ReceiveSocket, t.Packet, 0)
-	//capture time
-	elapsed := time.Since(start)
-	if err != nil {
-		hop.Error = err
-		loggerTraceroute.Errorf("hop: %+v", hop)
-		return hop, err
-	}
+		err = syscall.Sendto(t.SendSocket, []byte{0}, 0, &syscall.SockaddrInet4{Port: t.Port, Addr: t.Dest})
+		if err != nil {
+			hop.Error = err
+			return hop, err
+		}
 
-	// grab current addr
-	t.CurrentAddr = from.(*syscall.SockaddrInet4).Addr
-	// reverse lookup
-	currAddrStr := fmt.Sprintf("%d.%d.%d.%d", t.CurrentAddr[0], t.CurrentAddr[1], t.CurrentAddr[2], t.CurrentAddr[3])
-	t.CurrentHost, err = net.LookupAddr(currAddrStr)
-	if err != nil {
-		loggerTraceroute.Warn("reverse lookup", err)
-	} else {
-		hop.Host = t.CurrentHost[0]
+		bReceived, from, err := syscall.Recvfrom(t.ReceiveSocket, t.Packet, 0)
+		if err != nil {
+			hop.Error = err
+			return hop, err
+		}
+
+		icmpType := t.Packet[20]
+		switch icmpType {
+		case 11:
+			t.CurrentAddr = from.(*syscall.SockaddrInet4).Addr
+			addrStr := fmt.Sprintf("%d.%d.%d.%d", t.CurrentAddr[0], t.CurrentAddr[1], t.CurrentAddr[2], t.CurrentAddr[3])
+			t.CurrentHost, err = net.LookupAddr(addrStr)
+			if err != nil {
+				loggerTraceroute.Warn("reverse lookup failed: ", err)
+
+			} else {
+				hop.Host = t.CurrentHost[0]
+			}
+
+			hop.Success = true
+			hop.Address = t.CurrentAddr
+			hop.BytesReceived = bReceived
+			hop.ElapsedTime = time.Since(start)
+			hop.TTL = t.TTL
+			loggerTraceroute.Infof("hop: %+v", hop)
+			return hop, nil
+
+		case 3:
+			loggerTraceroute.Warn("destination unreachable. Retrying....")
+			retries++
+		default:
+			loggerTraceroute.Infof("received non-handled ICMP type: %d", icmpType)
+		}
 	}
-	hop.Success = true
-	hop.Address = t.CurrentAddr
-	hop.BytesReceived = bReceived
-	hop.ElapsedTime = elapsed
-	hop.TTL = t.TTL
-	loggerTraceroute.Infof("hop: %+v", hop)
+	hop.Success = false
+	hop.Error = fmt.Errorf("max retries exeeded")
 	return hop, nil
-
 }
 
 // traceroute is the main function that performs the traceroute
@@ -165,7 +172,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	//
 	timeoutMs := (int64)(t.Timeout)
 	maxTracerouteTimeout := 60 * time.Second // arbitrary timeout
-	tv := syscall.NsecToTimeval(1000 * 1000 * timeoutMs)
+	timeValue := syscall.NsecToTimeval(1000 * 1000 * timeoutMs)
 
 	// get the socket address that packets will be sent from
 	socketAddr, err := t.socketAddr()
@@ -175,7 +182,6 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	}
 	t.TTL = t.FirstHop
 	t.Packet = make([]byte, t.Packetsize)
-	retry := 0
 
 	// create a context with a timeout for the entire traceroute operation
 	ctx, cancel := context.WithTimeout(ctx, maxTracerouteTimeout)
@@ -197,7 +203,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	}
 
 	// set the timeout for the socket
-	err = syscall.SetsockoptTimeval(t.ReceiveSocket, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &tv)
+	err = syscall.SetsockoptTimeval(t.ReceiveSocket, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &timeValue)
 	if err != nil {
 		loggerTraceroute.Error("error setting timeout", err)
 		return res, err
@@ -221,19 +227,11 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 		// call hop operation and append the hops to the result
 		hop, err := t.runHop(ctx)
 		if err != nil {
-			retry += 1
-			// if retries exeeded
-			if retry > t.Retries {
-				retryErr := errors.New("retries exeeded")
-				res.Hops = append(res.Hops, Hop{Success: false, TTL: t.TTL, Error: retryErr})
-				t.TTL += 1
-				retry = 0
-			}
+			loggerTraceroute.Error("error running hop: ", err)
 		}
 
 		res.Hops = append(res.Hops, hop)
 		t.TTL += 1
-		retry = 0
 		if t.TTL > t.MaxHops || t.CurrentAddr == t.Dest {
 			loggerTraceroute.Infof("res: %+v", res)
 			return res, nil
