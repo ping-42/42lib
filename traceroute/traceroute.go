@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"syscall"
 	"time"
 
 	"github.com/ping-42/42lib/db/models"
 	"github.com/ping-42/42lib/logger"
+	"golang.org/x/sys/unix"
 )
 
 // TODO
@@ -112,19 +112,19 @@ func (t task) runHop(ctx context.Context) (hop Hop, err error) {
 	start := time.Now()
 
 	for retries <= t.Retries {
-		err = syscall.SetsockoptInt(t.SendSocket, 0x0, syscall.IP_TTL, t.TTL)
+		err = unix.SetsockoptInt(t.SendSocket, 0x0, unix.IP_TTL, t.TTL)
 		if err != nil {
 			hop.Error = err
 			return hop, err
 		}
 
-		err = syscall.Sendto(t.SendSocket, []byte{0}, 0, &syscall.SockaddrInet4{Port: t.Port, Addr: t.Dest})
+		err = unix.Sendto(t.SendSocket, []byte{0}, 0, &unix.SockaddrInet4{Port: t.Port, Addr: t.Dest})
 		if err != nil {
 			hop.Error = err
 			return hop, err
 		}
 
-		bReceived, from, err := syscall.Recvfrom(t.ReceiveSocket, t.Packet, 0)
+		bReceived, from, err := unix.Recvfrom(t.ReceiveSocket, t.Packet, 0)
 		if err != nil {
 			hop.Error = err
 			return hop, err
@@ -133,7 +133,7 @@ func (t task) runHop(ctx context.Context) (hop Hop, err error) {
 		icmpType := t.Packet[20]
 		switch icmpType {
 		case 11:
-			t.CurrentAddr = from.(*syscall.SockaddrInet4).Addr
+			t.CurrentAddr = from.(*unix.SockaddrInet4).Addr
 			addrStr := fmt.Sprintf("%d.%d.%d.%d", t.CurrentAddr[0], t.CurrentAddr[1], t.CurrentAddr[2], t.CurrentAddr[3])
 			t.CurrentHost, err = net.LookupAddr(addrStr)
 			if err != nil {
@@ -172,7 +172,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	//
 	timeoutMs := (int64)(t.Timeout)
 	maxTracerouteTimeout := 60 * time.Second // arbitrary timeout
-	timeValue := syscall.NsecToTimeval(1000 * 1000 * timeoutMs)
+	timeValue := unix.NsecToTimeval(1000 * 1000 * timeoutMs)
 
 	// get the socket address that packets will be sent from
 	socketAddr, err := t.socketAddr()
@@ -188,34 +188,34 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	defer cancel()
 
 	// set up ICMP receive socket
-	t.ReceiveSocket, err = syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_ICMP)
+	t.ReceiveSocket, err = unix.Socket(unix.AF_INET, unix.SOCK_RAW, unix.IPPROTO_ICMP)
 	if err != nil {
 		loggerTraceroute.Error("error creating socket: ", err)
 		return res, err
 	}
-	defer syscall.Close(t.ReceiveSocket)
+	defer unix.Close(t.ReceiveSocket)
 
 	// bind the receive socket
-	err = syscall.Bind(t.ReceiveSocket, &syscall.SockaddrInet4{Port: t.Port, Addr: socketAddr})
+	err = unix.Bind(t.ReceiveSocket, &unix.SockaddrInet4{Port: t.Port, Addr: socketAddr})
 	if err != nil {
 		loggerTraceroute.Error("error binding socket", err)
 		return res, err
 	}
 
 	// set the timeout for the socket
-	err = syscall.SetsockoptTimeval(t.ReceiveSocket, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &timeValue)
+	err = unix.SetsockoptTimeval(t.ReceiveSocket, unix.SOL_SOCKET, unix.SO_RCVTIMEO, &timeValue)
 	if err != nil {
 		loggerTraceroute.Error("error setting timeout", err)
 		return res, err
 	}
 
 	// set up the UDP send socket
-	t.SendSocket, err = syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, syscall.IPPROTO_UDP)
+	t.SendSocket, err = unix.Socket(unix.AF_INET, unix.SOCK_DGRAM, unix.IPPROTO_UDP)
 	if err != nil {
 		loggerTraceroute.Error("error creating socket: ", err)
 		return res, err
 	}
-	defer syscall.Close(t.SendSocket)
+	defer unix.Close(t.SendSocket)
 
 	// start the main loop
 	//
