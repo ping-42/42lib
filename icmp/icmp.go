@@ -70,7 +70,7 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 
 	var res Result
 
-	// in case we have TargetDomain this is meaning that we need run also DNS to get the target ips
+	// in case we have TargetDomain this means that we need run also DNS to get the target ips
 	if t.TargetDomain != "" {
 
 		dnsRes, err := runDnsTask(ctx, t)
