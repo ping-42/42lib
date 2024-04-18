@@ -70,28 +70,12 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 
 	var res Result
 
-	// do we need to run also DNS test?
+	// in case we have TargetDomain this is meaning that we need run also DNS to get the target ips
 	if t.TargetDomain != "" {
 
-		// TODO mv to function
-		dnsTask := dns.NewEmptyTask()
-		dnsTask.Id = t.Id
-		dnsTask.SensorId = t.SensorId
-		dnsTask.Name = dns.TaskName
-		h, err := helpers.ExtractDomainFromUrl(t.TargetDomain)
+		dnsRes, err := runDnsTask(ctx, t)
 		if err != nil {
-			return nil, fmt.Errorf("ExtractDomainFromUrl err:%v, %v", err, t.TargetDomain)
-		}
-		dnsTask.Opts.Host = h
-
-		dnsResb, err := dnsTask.Run(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("error in icmp/dns Run err:%v", err)
-		}
-		var dnsRes = dns.Result{}
-		err = json.Unmarshal(dnsResb, &dnsRes)
-		if err != nil {
-			return nil, fmt.Errorf("Unmarshal dns.Result{} in icmp Run err:%v", err)
+			return nil, fmt.Errorf("runDnsTask from icmp err: %v", err)
 		}
 
 		if len(dnsRes.AnswerA) == 0 {
@@ -107,7 +91,24 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 		res.DnsResult = dnsRes
 	}
 
-	resPerIp, err := t.pingHost(ctx)
+	// create a new icmpV4 connection
+	connV4, err := createConnV4()
+	if err != nil {
+		err = fmt.Errorf("could not create icmpV4 connection:%v", err)
+		return nil, err
+	}
+
+	var connV6 *icmp.PacketConn
+	hasIPv6 := helpers.HasIPv6(t.TargetIPs)
+	if hasIPv6 {
+		connV6, err = createConnV6()
+		if err != nil {
+			err = fmt.Errorf("could not create icmpV6 connection:%v", err)
+			return nil, err
+		}
+	}
+
+	resPerIp, err := t.pingHost(ctx, connV4, connV6)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +187,7 @@ func (t task) createICMPMessage(ctx context.Context, msgType icmp.Type) (*icmp.M
 }
 
 // pingIteration takes the task context, connection, ICMP type, IP, pingStats and iteration number and returns the pingStats
-func (t task) pingIteration(ctx context.Context, conn *icmp.PacketConn, icmpType icmp.Type, targetIP net.IP, pingStats *IcmpPingStats, i int) error {
+func (t task) pingIteration(ctx context.Context, conn ICMPConn, icmpType icmp.Type, targetIP net.IP, pingStats *IcmpPingStats, i int) error {
 	// check if the context is cancelled
 	select {
 	case <-ctx.Done():
@@ -220,7 +221,7 @@ func (t task) pingIteration(ctx context.Context, conn *icmp.PacketConn, icmpType
 }
 
 // runICMP takes the task context, connection, ICMP type and IP and returns the ping result
-func (t *task) runICMP(ctx context.Context, conn *icmp.PacketConn, msgType icmp.Type, ip net.IP) (IcmpPingResult, error) {
+func (t *task) runICMP(ctx context.Context, conn ICMPConn, msgType icmp.Type, ip net.IP) (IcmpPingResult, error) {
 	result := IcmpPingResult{
 		IPAddr: ip,
 	}
@@ -274,7 +275,7 @@ func (t *task) runICMP(ctx context.Context, conn *icmp.PacketConn, msgType icmp.
 }
 
 // pingHost takes the task context and returns the statistics of the pings
-func (t task) pingHost(ctx context.Context) (resultsPerIp map[string]IcmpPingStats, err error) {
+func (t task) pingHost(ctx context.Context, connV4 ICMPConn, connV6 ICMPConn) (resultsPerIp map[string]IcmpPingStats, err error) {
 
 	// init the results
 	resultsPerIp = make(map[string]IcmpPingStats)
@@ -286,12 +287,6 @@ func (t task) pingHost(ctx context.Context) (resultsPerIp map[string]IcmpPingSta
 	ctx, cancel := context.WithTimeout(ctx, maxIcmpTimeout)
 	defer cancel()
 
-	// create a new icmpV4 connection
-	connV4, err := createConnV4()
-	if err != nil {
-		err = fmt.Errorf("could not create icmpV4 connection:%v", err)
-		return
-	}
 	// defer close v4 connection and return posible error
 	defer func() {
 		err := connV4.Close()
@@ -302,13 +297,7 @@ func (t task) pingHost(ctx context.Context) (resultsPerIp map[string]IcmpPingSta
 	}()
 
 	// create a new icmpV6 connection if available and return error if not
-	var connV6 *icmp.PacketConn
 	if hasIPv6 {
-		connV6, err = createConnV6()
-		if err != nil {
-			err = fmt.Errorf("could not create icmpV6 connection:%v", err)
-			return
-		}
 		// defer close connection and return posible error
 		defer func() {
 			err := connV6.Close()
@@ -322,7 +311,7 @@ func (t task) pingHost(ctx context.Context) (resultsPerIp map[string]IcmpPingSta
 	// ping each ip
 	for _, targetIP := range t.TargetIPs {
 		var pingStats IcmpPingStats
-		var conn *icmp.PacketConn
+		var conn ICMPConn
 		// check if the ip is ipv4 or ipv6 and use the corresponding connection
 		if targetIP.To4() != nil {
 			conn = connV4
@@ -357,5 +346,31 @@ func (t task) pingHost(ctx context.Context) (resultsPerIp map[string]IcmpPingSta
 	}
 
 	loggerIcmp.Infof("all results collected (%d)", len(resultsPerIp))
+	return
+}
+
+func runDnsTask(ctx context.Context, t task) (dnsRes dns.Result, err error) {
+	dnsTask := dns.NewEmptyTask()
+	dnsTask.Id = t.Id
+	dnsTask.SensorId = t.SensorId
+	dnsTask.Name = dns.TaskName
+	h, err := helpers.ExtractDomainFromUrl(t.TargetDomain)
+	if err != nil {
+		err = fmt.Errorf("ExtractDomainFromUrl err:%v, %v", err, t.TargetDomain)
+		return
+	}
+	dnsTask.Opts.Host = h
+
+	dnsResb, err := dnsTask.Run(ctx)
+	if err != nil {
+		err = fmt.Errorf("error in icmp/dns Run err:%v", err)
+		return
+	}
+	dnsRes = dns.Result{}
+	err = json.Unmarshal(dnsResb, &dnsRes)
+	if err != nil {
+		err = fmt.Errorf("Unmarshal dns.Result{} in icmp Run err:%v", err)
+		return
+	}
 	return
 }
