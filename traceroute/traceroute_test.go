@@ -1,10 +1,3 @@
-//go:build ignore
-// +build ignore
-
-/*
-Until the tests are properly implemented and mocked,
-ignore this from the pipeline and use for debugging only.
-*/
 package traceroute
 
 import (
@@ -16,7 +9,7 @@ import (
 )
 
 // func TestRunHop(t *testing.T) {
-// 	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":[8,8,8,8],"FirstHop":1,"MaxHops":10,"Timeout":5000,"PacketSize":52,"Retries":1}}`)
+// 	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":[8,8,8,8],"FirstHop":1,"MaxHops":30,"Timeout":5000,"PacketSize":52,"Retries":3}}`)
 
 // 	task, err := NewTaskFromBytes(receivedMessage)
 // 	if err != nil {
@@ -36,7 +29,7 @@ import (
 func TestTracerouteTask(t *testing.T) {
 
 	// mock message with default win payload
-	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":[8,8,8,8],"FirstHop":1,"MaxHops":10,"Timeout":000,"PacketSize":52,"Retries":3}}`)
+	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":[8,8,8,8],"FirstHop":1,"MaxHops":64,"Timeout":500,"PacketSize":52,"Retries":3}}`)
 
 	// Create an instance of the traceroute task with default options
 	tracerouteTask, err := NewTaskFromBytes(receivedMessage)

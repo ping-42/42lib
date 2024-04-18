@@ -13,19 +13,8 @@ import (
 )
 
 // TODO
-// retry should occur within each hop if needed
-// when should we retry?
 // we should analyze ICMP response
 // do we need to resolve the domain to an IP address?
-
-const (
-	DEFAULT_PORT        = 33434
-	DEFAULT_MAX_HOPS    = 64
-	DEFAULT_FIRST_HOP   = 1
-	DEFAULT_TIMEOUT_MS  = 500
-	DEFAULT_RETRIES     = 3
-	DEFAULT_PACKET_SIZE = 52
-)
 
 var (
 	loggerTraceroute = logger.WithTestType("traceroute")
@@ -107,42 +96,42 @@ func (t task) socketAddr() (addr [4]byte, err error) {
 }
 
 // runHop takes the task context, does the actual hop operations and returns a completed hop with stats or an error
-func (t task) runHop(ctx context.Context) (hop Hop, err error) {
-	retries := 0
+func (t *task) runHop() (hop Hop, err error) {
+	hop = Hop{}
+	// set the current hop TTL
+	err = unix.SetsockoptInt(t.SendSocket, 0x0, unix.IP_TTL, t.TTL)
+	if err != nil {
+		return hop, err
+	}
 	start := time.Now()
 
-	for retries <= t.Retries {
-		err = unix.SetsockoptInt(t.SendSocket, 0x0, unix.IP_TTL, t.TTL)
-		if err != nil {
-			hop.Error = err
-			return hop, err
-		}
+	for retries := 0; retries < t.Retries; retries++ {
 
+		// send empty udp packet
 		err = unix.Sendto(t.SendSocket, []byte{0}, 0, &unix.SockaddrInet4{Port: t.Port, Addr: t.Dest})
 		if err != nil {
-			hop.Error = err
-			return hop, err
+			loggerTraceroute.Errorf("Failed to send packet on hop #%d: %v", t.TTL, err)
+			continue //retry sending
 		}
-
+		// read the icmp response
 		bReceived, from, err := unix.Recvfrom(t.ReceiveSocket, t.Packet, 0)
 		if err != nil {
-			hop.Error = err
-			return hop, err
+			loggerTraceroute.Errorf("Failed to receive packet on hop #%d: %v", t.TTL, err)
+			continue //retry receiving
 		}
-
+		// check the icmp type
 		icmpType := t.Packet[20]
+		t.CurrentAddr = from.(*unix.SockaddrInet4).Addr
+		addrStr := fmt.Sprintf("%d.%d.%d.%d", t.CurrentAddr[0], t.CurrentAddr[1], t.CurrentAddr[2], t.CurrentAddr[3])
 		switch icmpType {
-		case 11:
-			t.CurrentAddr = from.(*unix.SockaddrInet4).Addr
-			addrStr := fmt.Sprintf("%d.%d.%d.%d", t.CurrentAddr[0], t.CurrentAddr[1], t.CurrentAddr[2], t.CurrentAddr[3])
+		case 11: // time exeeded
+			loggerTraceroute.Infof("Time Exceeded received from %s", addrStr)
 			t.CurrentHost, err = net.LookupAddr(addrStr)
 			if err != nil {
 				loggerTraceroute.Warn("reverse lookup failed: ", err)
-
 			} else {
 				hop.Host = t.CurrentHost[0]
 			}
-
 			hop.Success = true
 			hop.Address = t.CurrentAddr
 			hop.BytesReceived = bReceived
@@ -150,17 +139,47 @@ func (t task) runHop(ctx context.Context) (hop Hop, err error) {
 			hop.TTL = t.TTL
 			loggerTraceroute.Infof("hop: %+v", hop)
 			return hop, nil
-
-		case 3:
-			loggerTraceroute.Warn("destination unreachable. Retrying....")
-			retries++
+		case 3: // port unreachable. this means we reached the dest(yay) but the port is not available (cuz we send to a weird port)
+			loggerTraceroute.Warn("Port unreachable")
+			t.CurrentHost, err = net.LookupAddr(addrStr)
+			if err != nil {
+				loggerTraceroute.Warn("reverse lookup failed: ", err)
+			} else {
+				hop.Host = t.CurrentHost[0]
+			}
+			hop.Success = true
+			hop.Address = t.CurrentAddr
+			hop.BytesReceived = bReceived
+			hop.ElapsedTime = time.Since(start)
+			hop.TTL = t.TTL
+			loggerTraceroute.Infof("hop: %+v", hop)
+			return hop, nil
+		case 0: // this is possible but very unlikely
+			loggerTraceroute.Infof("Destination reached: %s", addrStr)
+			t.CurrentHost, err = net.LookupAddr(addrStr)
+			if err != nil {
+				loggerTraceroute.Warn("reverse lookup failed: ", err)
+			} else {
+				hop.Host = t.CurrentHost[0]
+			}
+			hop.Success = true
+			hop.Address = t.CurrentAddr
+			hop.BytesReceived = bReceived
+			hop.ElapsedTime = time.Since(start)
+			hop.TTL = t.TTL
+			loggerTraceroute.Infof("hop: %+v", hop)
+			return hop, nil
 		default:
-			loggerTraceroute.Infof("received non-handled ICMP type: %d", icmpType)
+			loggerTraceroute.Infof("ICMP type not handled: %d", icmpType)
+			continue
 		}
 	}
 	hop.Success = false
-	hop.Error = fmt.Errorf("max retries exeeded")
-	return hop, nil
+	hop.ElapsedTime = time.Since(start)
+	hop.TTL = t.TTL
+	hop.Error = fmt.Errorf("max retries exceeded for hop")
+	loggerTraceroute.Infof("hop: %+v", hop)
+	return hop, hop.Error
 }
 
 // traceroute is the main function that performs the traceroute
@@ -225,7 +244,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 		}
 
 		// call hop operation and append the hops to the result
-		hop, err := t.runHop(ctx)
+		hop, err := t.runHop()
 		if err != nil {
 			loggerTraceroute.Error("error running hop: ", err)
 		}
