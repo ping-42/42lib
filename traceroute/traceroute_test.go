@@ -1,3 +1,10 @@
+//go:build ignore
+// +build ignore
+
+/*
+Until the tests are properly implemented and mocked,
+ignore this from the pipeline and use for debugging only.
+*/
 package traceroute
 
 import (
