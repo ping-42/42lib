@@ -15,7 +15,7 @@ type task struct {
 	Opts `json:"Opts"`
 }
 
-// Opts holds all of the options for the traceroute task
+// Opts for the task
 type Opts struct {
 	Port          int      `json:"Port"`
 	Dest          [4]byte  `json:"Dest"`
@@ -45,7 +45,7 @@ func (t task) GetName() sensorTask.TaskName {
 	return TaskName
 }
 
-// TracerouteHop type
+// Traceroute Hop type
 type Hop struct {
 	Success       bool
 	Address       [4]byte

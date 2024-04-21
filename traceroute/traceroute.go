@@ -9,12 +9,20 @@ import (
 
 	"github.com/ping-42/42lib/db/models"
 	"github.com/ping-42/42lib/logger"
+	"golang.org/x/net/icmp"
+	"golang.org/x/net/ipv4"
 	"golang.org/x/sys/unix"
 )
 
-// TODO
-// we should analyze ICMP response
-// do we need to resolve the domain to an IP address?
+// // these are typical default values for unix/linux traceroute operations
+// const (
+// 	DEFAULT_PORT        = 33434 // we target an unreachable port on the destination
+// 	DEFAULT_MAX_HOPS    = 64
+// 	DEFAULT_FIRST_HOP   = 1 // can be set to a higher value if we want to start hoping from from a certain router
+// 	DEFAULT_TIMEOUT_MS  = 500
+// 	DEFAULT_RETRIES     = 3
+// 	DEFAULT_PACKET_SIZE = 52 // ipv4header (20) + udpheader (8) + payload (24)
+// )
 
 var (
 	loggerTraceroute = logger.WithTestType("traceroute")
@@ -73,29 +81,29 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 	return resJson, nil
 }
 
-// socketAddr return the first non-loopback address as a 4 byte IP address. This address
-// is used for sending packets out.
-func (t task) socketAddr() (addr [4]byte, err error) {
-	// get the a list of the system's addresses
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		loggerTraceroute.Error("error retreiving addresses", err)
-		return
-	}
-	// look for an ipv4 address that will be used to send packets
-	for _, a := range addrs {
-		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if len(ipnet.IP.To4()) == net.IPv4len {
-				copy(addr[:], ipnet.IP.To4())
-				loggerTraceroute.Info("socketAddr: ", addr)
-				return addr, nil
-			}
-		}
-	}
-	return
-}
+// // socketAddr return the first non-loopback address as a 4 byte IP address. This address
+// // is used for sending packets out.
+// func (t task) socketAddr() (addr [4]byte, err error) {
+// 	// get the a list of the system's addresses
+// 	addrs, err := net.InterfaceAddrs()
+// 	if err != nil {
+// 		loggerTraceroute.Error("error retreiving addresses", err)
+// 		return
+// 	}
+// 	// look for an ipv4 address that will be used to send packets
+// 	for _, a := range addrs {
+// 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+// 			if len(ipnet.IP.To4()) == net.IPv4len {
+// 				copy(addr[:], ipnet.IP.To4())
+// 				loggerTraceroute.Info("socketAddr: ", addr)
+// 				return addr, nil
+// 			}
+// 		}
+// 	}
+// 	return
+// }
 
-// runHop takes the task context, does the actual hop operations and returns a completed hop with stats or an error
+// runHop takes the task context, does the actual hop operation and returns a completed hop with stats or an error
 func (t *task) runHop() (hop Hop, err error) {
 	hop = Hop{}
 	// set the current hop TTL
@@ -113,18 +121,35 @@ func (t *task) runHop() (hop Hop, err error) {
 			loggerTraceroute.Errorf("Failed to send packet on hop #%d: %v", t.TTL, err)
 			continue //retry sending
 		}
-		// read the icmp response
+
+		// read the ICMP response into the buffer we created
 		bReceived, from, err := unix.Recvfrom(t.ReceiveSocket, t.Packet, 0)
 		if err != nil {
 			loggerTraceroute.Errorf("Failed to receive packet on hop #%d: %v", t.TTL, err)
 			continue //retry receiving
 		}
-		// check the icmp type
-		icmpType := t.Packet[20]
+
+		// get the current address
 		t.CurrentAddr = from.(*unix.SockaddrInet4).Addr
 		addrStr := fmt.Sprintf("%d.%d.%d.%d", t.CurrentAddr[0], t.CurrentAddr[1], t.CurrentAddr[2], t.CurrentAddr[3])
-		switch icmpType {
-		case 11: // time exeeded
+
+		// parse the ICMP message
+		parsedIcmpMessage, err := icmp.ParseMessage(1, t.Packet[20:])
+		if err != nil {
+			loggerTraceroute.Error("error parsing message", err)
+		}
+
+		// // do we need the header??
+		// // parse the header
+		// parsedHeader, err := icmp.ParseIPv4Header(t.Packet)
+		// if err != nil {
+		// 	loggerTraceroute.Error("error parsing header: ", err)
+		// }
+		// loggerTraceroute.Infof("parsedHeader: %+v", parsedHeader)
+
+		// switch on the ICMP message type to determine hop result
+		switch parsedIcmpMessage.Type {
+		case ipv4.ICMPTypeTimeExceeded: // time exeeded. this means that the packet was dropped and the TTL will increment by 1 on next hop.
 			loggerTraceroute.Infof("Time Exceeded received from %s", addrStr)
 			t.CurrentHost, err = net.LookupAddr(addrStr)
 			if err != nil {
@@ -139,7 +164,7 @@ func (t *task) runHop() (hop Hop, err error) {
 			hop.TTL = t.TTL
 			loggerTraceroute.Infof("hop: %+v", hop)
 			return hop, nil
-		case 3: // port unreachable. this means we reached the dest(yay) but the port is not available (cuz we send to a weird port)
+		case ipv4.ICMPTypeDestinationUnreachable: // port unreachable. this means we reached the dest(yay) but the port is not available (cuz we send to a weird port).
 			loggerTraceroute.Warn("Port unreachable")
 			t.CurrentHost, err = net.LookupAddr(addrStr)
 			if err != nil {
@@ -154,7 +179,7 @@ func (t *task) runHop() (hop Hop, err error) {
 			hop.TTL = t.TTL
 			loggerTraceroute.Infof("hop: %+v", hop)
 			return hop, nil
-		case 0: // this is possible but very unlikely
+		case ipv4.ICMPTypeEchoReply: // we hit the destination address and port. This is possible but very unlikely.
 			loggerTraceroute.Infof("Destination reached: %s", addrStr)
 			t.CurrentHost, err = net.LookupAddr(addrStr)
 			if err != nil {
@@ -170,7 +195,7 @@ func (t *task) runHop() (hop Hop, err error) {
 			loggerTraceroute.Infof("hop: %+v", hop)
 			return hop, nil
 		default:
-			loggerTraceroute.Infof("ICMP type not handled: %d", icmpType)
+			loggerTraceroute.Infof("received non-handled ICMP type: %d", parsedIcmpMessage.Type)
 			continue
 		}
 	}
@@ -187,26 +212,19 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	// set up the result
 	res.DestinationAdress = t.Dest
 	res.Hops = make([]Hop, 0)
-	// initialize the function with options from the task
-	//
-	timeoutMs := (int64)(t.Timeout)
-	maxTracerouteTimeout := 60 * time.Second // arbitrary timeout
-	timeValue := unix.NsecToTimeval(1000 * 1000 * timeoutMs)
 
-	// get the socket address that packets will be sent from
-	socketAddr, err := t.socketAddr()
-	if err != nil {
-		loggerTraceroute.Error("no valid ip found:", err)
-		return
-	}
+	// initialize the function with options from the task
+	maxTracerouteTimeout := 60 * time.Second // arbitrary timeout
+	timeoutMs := (int64)(t.Timeout)
+	timeValue := unix.NsecToTimeval(1000 * 1000 * timeoutMs)
 	t.TTL = t.FirstHop
-	t.Packet = make([]byte, t.Packetsize)
+	t.Packet = make([]byte, t.Packetsize) // create packet buffer that will store the ICMP response
 
 	// create a context with a timeout for the entire traceroute operation
 	ctx, cancel := context.WithTimeout(ctx, maxTracerouteTimeout)
 	defer cancel()
 
-	// set up ICMP receive socket
+	// set up raw socket for receiving ICMP replies
 	t.ReceiveSocket, err = unix.Socket(unix.AF_INET, unix.SOCK_RAW, unix.IPPROTO_ICMP)
 	if err != nil {
 		loggerTraceroute.Error("error creating socket: ", err)
@@ -214,8 +232,8 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	}
 	defer unix.Close(t.ReceiveSocket)
 
-	// bind the receive socket
-	err = unix.Bind(t.ReceiveSocket, &unix.SockaddrInet4{Port: t.Port, Addr: socketAddr})
+	// bind the receive socket to 0.0.0.0 to listen on all interfaces
+	err = unix.Bind(t.ReceiveSocket, &unix.SockaddrInet4{})
 	if err != nil {
 		loggerTraceroute.Error("error binding socket", err)
 		return res, err
@@ -228,7 +246,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 		return res, err
 	}
 
-	// set up the UDP send socket
+	// set up datagram socket for sending UDP packets
 	t.SendSocket, err = unix.Socket(unix.AF_INET, unix.SOCK_DGRAM, unix.IPPROTO_UDP)
 	if err != nil {
 		loggerTraceroute.Error("error creating socket: ", err)
@@ -237,7 +255,6 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	defer unix.Close(t.SendSocket)
 
 	// start the main loop
-	//
 	for {
 		if ctx.Err() != nil {
 			return
