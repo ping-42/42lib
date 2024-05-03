@@ -1,7 +1,14 @@
 package models
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type TsHostRuntimeStat struct {
-	TsSensorTaskBase
+	Time           time.Time `gorm:"type:TIMESTAMPTZ;"`
+	SensorID       uuid.UUID `gorm:"type:uuid;"`
 	GoRoutineCount int
 	//
 	CpuCores     uint16

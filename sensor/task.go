@@ -1,4 +1,4 @@
-package sensorTask
+package sensor
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
+	"github.com/ping-42/42lib/wss"
 )
 
 // TaskRunner
@@ -31,11 +32,13 @@ type TaskName string
 
 // TResult the implementation of TaskResult interface
 type TResult struct {
-	TaskId        uuid.UUID
-	TaskName      TaskName
-	Result        []byte
-	HostTelemetry HostTelemetry
-	Error         string
+	// MessageGeneralType is required for all messages sent via WSS
+	wss.MessageGeneralType
+
+	TaskId   uuid.UUID
+	TaskName TaskName
+	Result   []byte
+	Error    string
 }
 
 func (t TResult) SendToServer(ctx context.Context, wsConn net.Conn) (err error) {

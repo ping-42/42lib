@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ping-42/42lib/sensorTask"
+	"github.com/ping-42/42lib/sensor"
 	"golang.org/x/sys/unix"
 
 	"github.com/miekg/dns"
@@ -32,7 +32,7 @@ type DnsNameServer struct {
 
 // Task implements the TaskRunner interface
 type task struct {
-	sensorTask.Task
+	sensor.Task
 	Opts `json:"DnsOpts"`
 }
 
@@ -50,7 +50,7 @@ func (t task) GetId() uuid.UUID {
 	return t.Task.Id
 }
 
-func (t task) GetName() sensorTask.TaskName {
+func (t task) GetName() sensor.TaskName {
 	return TaskName
 }
 

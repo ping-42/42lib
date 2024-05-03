@@ -126,7 +126,7 @@
     "REDIS_PASSWORD":"ping42.eth.redis",
 
     // SENSOR TOKEN - USED FOR DEVELOPMENT
-    "PING42_SENSOR_TOKEN":"YjlkYzNkMjAtMjU2Yi00YWM3LThjYWUtMmY2ZGM5NjJlMTgzLnNlbnNvclNlY3JldDEyMyE=",
+    "PING42_SENSOR_TOKEN":"ewogICAiU2Vuc29ySWQiOiJiOWRjM2QyMC0yNTZiLTRhYzctOGNhZS0yZjZkYzk2MmUxODMiLAogICAiU2VjcmV0Ijoic2Vuc29yU2VjcmV0MTIzISIKfQ==",
     // Server address, by default is: wss://api.ping42.net
     "PING42_TELEMETRY_SERVER":"ws://localhost:8080"
   }
