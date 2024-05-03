@@ -6,14 +6,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ping-42/42lib/dns"
-	"github.com/ping-42/42lib/sensorTask"
+	"github.com/ping-42/42lib/sensor"
 )
 
 const TaskName = "ICMP_TASK"
 
 // task extends base Task struct, that implements TaskRunner interface
 type task struct {
-	sensorTask.Task
+	sensor.Task
 	Opts `json:"Opts"`
 }
 
@@ -35,7 +35,7 @@ func (t task) GetSensorId() uuid.UUID {
 	return t.Task.SensorId
 }
 
-func (t task) GetName() sensorTask.TaskName {
+func (t task) GetName() sensor.TaskName {
 	return TaskName
 }
 

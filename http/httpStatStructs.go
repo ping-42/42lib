@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ping-42/42lib/sensorTask"
+	"github.com/ping-42/42lib/sensor"
 )
 
 const TaskName = "HTTP_TASK"
 
 // Task implements the TaskRunner interface
 type task struct {
-	sensorTask.Task
+	sensor.Task
 	Opts `json:"HttpOpts"`
 }
 
@@ -32,7 +32,7 @@ func (t task) GetId() uuid.UUID {
 	return t.Task.Id
 }
 
-func (t task) GetName() sensorTask.TaskName {
+func (t task) GetName() sensor.TaskName {
 	return TaskName
 }
 
