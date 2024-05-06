@@ -1,4 +1,4 @@
-version: "3.9"
+# PING42 Development Compose file
 
 services:
   timescaledb:

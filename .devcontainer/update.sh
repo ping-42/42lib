@@ -41,7 +41,7 @@ else
 fi
 
 # Start the timescale and redis in detached mode
-docker-compose -f ping-42/.devcontainer/docker-compose.yml up -d
+docker compose -f 42lib/.devcontainer/docker-compose.yml --progress plain up -d
 
 # echo "[*] Updating Golang deps..."
 # for REPO in "${REPOS[@]}"; do
@@ -58,4 +58,3 @@ docker-compose -f ping-42/.devcontainer/docker-compose.yml up -d
 #sudo chown vscode: -R /workspaces/ "${HOME}"
 
 #sudo chmod o+w /workspaces/42lib/.devcontainer/devcontainer.json
-
