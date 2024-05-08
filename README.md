@@ -10,6 +10,7 @@ This is the codebase of the 42 library and where the majority of infrastructure 
     - [Calculating socket RTT](#calculating-socket-rtt)
     - [Running under Docker](#running-under-docker)
   - [Authenticate to GCP (unused)](#authenticate-to-gcp-unused)
+  - [Debugging Raw Sockets in VS Code](#debugging-raw-sockets-in-vs-code)
 
 ## Codespace Configuration
 
@@ -80,3 +81,13 @@ gcloud init --project ping42-xxxxxxxx
 
 This requires one to authenticate and provide permission for the current workspace to access the GCP account. To test that everything is working, try `gcloud functions list`.
 In order to then interact with the BigQuery dataset, a simple `gcloud alpha bq datasets list` or `gcloud alpha bq datasets describe events`. The `gcloud` util allows querying and enumerating the datasets and tables with queries directly from the CLI.
+
+## Debugging Raw Sockets in VS Code
+To debug the traceroute package and others that require raw socket operations, you can run VS Code with root privileges (preferably within a virtual environment to minimize security risks). Use the following on Linux:
+
+Open a terminal and navigateto the lib directory.
+Use this to launch vscode as root:
+
+```bash
+sudo code . --no-sandbox --user-data-dir ~/vsdata
+```
