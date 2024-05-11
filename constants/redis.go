@@ -1,5 +1,6 @@
 package constants
 
 const (
-	RedisPrefixActiveSensors = "active_sensors:"
+	RedisActiveSensorsKeyPrefix = "active_sensors:"
+	RedisActiveSensorsRankKey = "active_sensors_rank"
 )

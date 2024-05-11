@@ -43,7 +43,7 @@ func migrate(db *gorm.DB) error {
 					&models.Client{},
 					&models.ClientSubscription{},
 					&models.Task{},
-					&models.SensorRank{},
+					// &models.SensorRank{},
 					// &models.SensorSupportedTaskTypes{},
 					&models.TsHostRuntimeStat{},
 					&models.TsDnsResult{},
@@ -143,8 +143,6 @@ func migrate(db *gorm.DB) error {
 const devSeeds = `
 -----sensors-----
 INSERT INTO sensors(id, name, location, secret) VALUES ('b9dc3d20-256b-4ac7-8cae-2f6dc962e183', 'Test Sensor', 'Sofia, Bulgaria', 'sensorSecret123!');
------sensor_ranks-----
-INSERT INTO sensor_ranks(id, sensor_id, current_rank, created_at) VALUES (1, 'b9dc3d20-256b-4ac7-8cae-2f6dc962e183', 5, now());
 
 -----client-----
 INSERT INTO clients(id, name, email) VALUES (1, 'Test Client', 'test_client@gmail.com');
