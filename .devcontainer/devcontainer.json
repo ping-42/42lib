@@ -30,9 +30,10 @@
       "version": "latest"
     },
     "ghcr.io/devcontainers-contrib/features/gh-cli:1": {},
-    "ghcr.io/dhoeric/features/google-cloud-cli:1": {
-      "version": "latest"
-    },
+    // Disabled as we no longer use GCP
+    // "ghcr.io/dhoeric/features/google-cloud-cli:1": {
+    //   "version": "latest"
+    // },
     // Ubuntu apt-get packages to install
     "ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {
       "packages": "iputils-ping"
