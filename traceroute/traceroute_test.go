@@ -1,10 +1,3 @@
-//go:build ignore
-// +build ignore
-
-/*
-Until the tests are properly implemented and mocked,
-ignore this from the pipeline and use for debugging only.
-*/
 package traceroute
 
 import (
@@ -12,7 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ping-42/42lib/testingkit"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/sys/unix"
 )
 
 // func TestRunHop(t *testing.T) {
@@ -35,11 +30,20 @@ import (
 
 func TestTracerouteTask(t *testing.T) {
 
+	mockSysUnix := testingkit.MockedSysUnix{
+		SocketFunc: func(domain, typ, proto int) (int, error) {
+			return 1, nil
+		},
+		RecvfromFunc: func(fd int, p []byte, flags int) (int, unix.Sockaddr, error) {
+			return len(p), &unix.SockaddrInet4{}, nil
+		},
+	}
+
 	// mock message with default win payload
 	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":[8,8,8,8],"FirstHop":1,"MaxHops":64,"Timeout":500,"PacketSize":52,"Retries":3}}`)
 
 	// Create an instance of the traceroute task with default options
-	tracerouteTask, err := NewTaskFromBytes(receivedMessage)
+	tracerouteTask, err := NewTaskFromBytes(receivedMessage, mockSysUnix)
 	if err != nil {
 		fmt.Println("eror creating task:", err)
 	}
