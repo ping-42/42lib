@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ping-42/42lib/tastingkit"
+	"github.com/ping-42/42lib/testingkit"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,7 +46,7 @@ func Test_pingHost_general(t *testing.T) {
 	}
 
 	// Mocked instance with custom behavior for WriteToFunc
-	var mockedICMPConn = tastingkit.MockedICMPConn{
+	var mockedICMPConn = testingkit.MockedICMPConn{
 		WriteToFunc: func(b []byte, addr net.Addr) (int, error) {
 			// custom behavior for WriteToFunc
 			time.Sleep(writeTime)
