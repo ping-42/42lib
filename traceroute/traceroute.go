@@ -86,31 +86,35 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 // should these methods be defined in structs.go?
 type SysUnixReal struct{}
 
-func (s *SysUnixReal) Socket(domain int, typ int, proto int) (fd int, err error) {
+func (s SysUnixReal) Socket(domain int, typ int, proto int) (fd int, err error) {
 	return unix.Socket(domain, typ, proto)
 }
 
-func (s *SysUnixReal) Close(fd int) (err error) {
+func (s SysUnixReal) Close(fd int) (err error) {
 	return unix.Close(fd)
 }
 
-func (s *SysUnixReal) Bind(fd int, sa unix.Sockaddr) (err error) {
+func (s SysUnixReal) Bind(fd int, sa unix.Sockaddr) (err error) {
 	return unix.Bind(fd, sa)
 }
 
-func (s *SysUnixReal) SetsockoptTimeval(fd int, level int, opt int, tv *unix.Timeval) error {
+func (s SysUnixReal) SetsockoptInt(fd int, level int, opt int, value int) error {
+	return unix.SetsockoptInt(fd, level, opt, value)
+}
+
+func (s SysUnixReal) SetsockoptTimeval(fd int, level int, opt int, tv *unix.Timeval) error {
 	return unix.SetsockoptTimeval(fd, level, opt, tv)
 }
 
-func (s *SysUnixReal) Sendto(fd int, p []byte, flags int, to unix.Sockaddr) (err error) {
+func (s SysUnixReal) Sendto(fd int, p []byte, flags int, to unix.Sockaddr) (err error) {
 	return unix.Sendto(fd, p, flags, to)
 }
 
-func (s *SysUnixReal) Recvfrom(fd int, p []byte, flags int) (n int, from unix.Sockaddr, err error) {
+func (s SysUnixReal) Recvfrom(fd int, p []byte, flags int) (n int, from unix.Sockaddr, err error) {
 	return unix.Recvfrom(fd, p, flags)
 }
 
-func (s *SysUnixReal) NsecToTimeval(nsec int64) unix.Timeval {
+func (s SysUnixReal) NsecToTimeval(nsec int64) unix.Timeval {
 	return unix.NsecToTimeval(nsec)
 }
 
