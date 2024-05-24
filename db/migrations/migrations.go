@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"github.com/go-gormigrate/gormigrate/v2"
+	"github.com/google/uuid"
 	"github.com/ping-42/42lib/config"
 	"github.com/ping-42/42lib/db/models"
 	"gorm.io/gorm"
@@ -29,12 +30,28 @@ END $$;
 */
 
 func migrate(db *gorm.DB) error {
-	// TODO: prior to going live, the structs referenced here should be copy-pasted
+	// TODOs:
+	// 1.prior to going live, the structs referenced here should
+	//   be copy-pasted explicitly to preserve a changelog. Additionally,
+	//   all migrations should be squashed into one.
+	// 2. Add indexes for rank queries
 	migrations := []*gormigrate.Migration{
 		{
 			// IDs must be unique
 			ID: "initial",
 			Migrate: func(tx *gorm.DB) error {
+				type Task struct {
+					ID                   uuid.UUID                 `gorm:"type:uuid;primary_key;" json:"id"`
+					TaskTypeID           uint64                    //FK to TaskType.id
+					TaskType             models.LvTaskType         `gorm:"foreignKey:TaskTypeID"`
+					TaskStatusID         uint8                     //FK to TaskType.id
+					TaskStatus           models.LvTaskStatus       `gorm:"foreignKey:TaskStatusID"`
+					SensorID             uuid.UUID                 //FK to Sensor.id
+					Sensor               models.Sensor             `gorm:"foreignKey:SensorID"`
+					ClientSubscriptionID uint64                    //FK to ClientSubscription.id
+					ClientSubscription   models.ClientSubscription `gorm:"foreignKey:ClientSubscriptionID"`
+					Opts                 []byte                    `gorm:"type:jsonb"`
+				}
 				err := tx.Migrator().CreateTable(
 					&models.Sensor{},
 					&models.LvTaskType{},
@@ -42,9 +59,7 @@ func migrate(db *gorm.DB) error {
 					&models.LvProtocol{},
 					&models.Client{},
 					&models.ClientSubscription{},
-					&models.Task{},
-					// &models.SensorRank{},
-					// &models.SensorSupportedTaskTypes{},
+					&Task{},
 					&models.TsHostRuntimeStat{},
 					&models.TsDnsResult{},
 					&models.TsDnsResultAnswer{},
@@ -117,8 +132,27 @@ func migrate(db *gorm.DB) error {
 				return tx.Rollback().Error
 			},
 		},
+		{
+			ID: "for-squash-1",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.Migrator().CreateTable(&models.SensorRank{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		},
+		{
+			ID: "for-squash-2",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.Migrator().AddColumn(&models.Task{}, "CreatedAt")
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		},
 	}
 
+	// dev demo data
 	if config.CurrentEnv() == config.Dev {
 		migrations = append(migrations, &gormigrate.Migration{
 			ID: "dev-seeds-01",
@@ -134,6 +168,16 @@ func migrate(db *gorm.DB) error {
 				return tx.Rollback().Error
 			},
 		})
+
+		migrations = append(migrations, &gormigrate.Migration{
+			ID: "dev-seeds-sensor-ranks",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.Exec(`INSERT INTO sensor_ranks(id, sensor_id, rank, distribution_rank, created_at) VALUES (1, 'b9dc3d20-256b-4ac7-8cae-2f6dc962e183', 5, 0, now());`).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		})
 	}
 
 	m := gormigrate.New(db, &gormigrate.Options{UseTransaction: true}, migrations)
@@ -143,7 +187,6 @@ func migrate(db *gorm.DB) error {
 const devSeeds = `
 -----sensors-----
 INSERT INTO sensors(id, name, location, secret) VALUES ('b9dc3d20-256b-4ac7-8cae-2f6dc962e183', 'Test Sensor', 'Sofia, Bulgaria', 'sensorSecret123!');
-
 -----client-----
 INSERT INTO clients(id, name, email) VALUES (1, 'Test Client', 'test_client@gmail.com');
 -----client_subscriptions-----
