@@ -27,11 +27,20 @@
 				"program": "/workspaces/sensor/"
 			},
 			{
-				"name": "Server",
+				"name": "Server-Run",
 				"type": "go",
 				"request": "launch",
 				"mode": "auto",
-				"program": "/workspaces/server/"
+				"program": "/workspaces/server/",
+				"args": ["run"]
+			},
+			{
+				"name": "Server-Migrate",
+				"type": "go",
+				"request": "launch",
+				"mode": "auto",
+				"program": "/workspaces/server/",
+				"args": ["migrate"]
 			},
 			{
 				"name": "Scheduler",
