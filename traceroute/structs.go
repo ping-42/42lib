@@ -14,15 +14,7 @@ const TaskName = "TRACEROUTE_TASK"
 type task struct {
 	sensor.Task
 	Opts    `json:"Opts"`
-	sysUnix SysUnix
-}
-
-// NewTask creates a new instance of a task with a specific SysUnix implementation.
-func NewTask(opts Opts, sysUnix SysUnix) *task {
-	return &task{
-		Opts:    opts,
-		sysUnix: sysUnix,
-	}
+	SysUnix SysUnix
 }
 
 // Opts for the task
@@ -38,8 +30,9 @@ type Opts struct {
 	Timeout       int      `json:"Timeout"`
 	Packetsize    int      `json:"PacketSize"`
 	Packet        []byte
-	TTL           int `json:"Ttl"`
-	Retries       int `json:"Retries"`
+	TTL           int  `json:"Ttl"`
+	Retries       int  `json:"Retries"`
+	NetCapRaw     bool `json:"NetCapRaw"`
 }
 
 // SysUnix is an interface for interacting with low-level system.
