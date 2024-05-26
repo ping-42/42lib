@@ -57,3 +57,22 @@ type TsIcmpResult struct {
 	Loss            float64
 	FailureMessages string
 }
+
+type TsHopResult struct {
+	TsSensorTaskBase
+	Success       bool
+	Address       [4]byte
+	Host          string
+	BytesReceived int
+	ElapsedTime   time.Duration
+	TTL           int
+	Error         error
+}
+
+type TsTracerouteResult struct {
+	DestinationAdress [4]byte
+	Hops              []TsHopResult
+}
+
+// TODO: convert address fields to net.IP in the traceroute package?
+// TODO: gorm type for Hops slice

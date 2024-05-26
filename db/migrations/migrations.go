@@ -50,6 +50,8 @@ func migrate(db *gorm.DB) error {
 					&models.TsDnsResultAnswer{},
 					&models.TsHttpResult{},
 					&models.TsIcmpResult{},
+					&models.TsHopResult{},
+					&models.TsTracerouteResult{},
 				)
 				if err != nil {
 					return err
@@ -64,7 +66,9 @@ func migrate(db *gorm.DB) error {
 					--
 					SELECT create_hypertable('ts_http_results', by_range('time'));
 					--
-					SELECT create_hypertable('ts_icmp_results', by_range('time'));`).Error
+					SELECT create_hypertable('ts_icmp_results', by_range('time'));
+					--
+					SELECT create_hypertable('ts_traceroute_results', by_range('time'));`).Error
 				if err != nil {
 					return err
 				}
@@ -80,7 +84,9 @@ func migrate(db *gorm.DB) error {
 					--
 					CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
 					--
-					CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);`).Error
+					CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
+					--
+					CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);`).Error
 				if err != nil {
 					return err
 				}
@@ -89,7 +95,8 @@ func migrate(db *gorm.DB) error {
 				err = tx.Exec(`
 					INSERT INTO lv_task_types(id, type) VALUES (1, 'DNS_TASK');
 					INSERT INTO lv_task_types(id, type) VALUES (2, 'ICMP_TASK');
-					INSERT INTO lv_task_types(id, type) VALUES (3, 'HTTP_TASK');`).Error
+					INSERT INTO lv_task_types(id, type) VALUES (3, 'HTTP_TASK');
+					INSERT INTO lv_task_types(id, type) VALUES (4, 'TRACEROUTE_TASK');`).Error
 				if err != nil {
 					return err
 				}
