@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/ping-42/42lib/db/models"
 	"github.com/ping-42/42lib/logger"
 	"github.com/ping-42/42lib/testingkit"
 	"golang.org/x/net/icmp"
@@ -44,6 +45,24 @@ func NewTaskFromBytes(msg []byte) (t task, err error) {
 		t.SysUnix = testingkit.MockedSysUnix{}
 	}
 	return t, nil
+}
+
+// NewTaskFromModel used in scheduler for building the task from the db model task
+func NewTaskFromModel(t models.Task) (tRes task, err error) {
+
+	tRes.Id = t.ID
+	tRes.SensorId = t.SensorID
+	tRes.Name = TaskName
+
+	// build the opts
+	var o = Opts{}
+	err = json.Unmarshal(t.Opts, &o)
+	if err != nil {
+		err = fmt.Errorf("traceroute NewTaskFromModel Unmarshal Opts err:%v", err)
+		return
+	}
+	tRes.Opts = o
+	return
 }
 
 // run is the entry point for the traceroute task
