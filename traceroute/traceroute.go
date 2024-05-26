@@ -7,8 +7,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/ping-42/42lib/db/models"
 	"github.com/ping-42/42lib/logger"
+	"github.com/ping-42/42lib/testingkit"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/sys/unix"
@@ -38,25 +38,12 @@ func NewTaskFromBytes(msg []byte) (t task, err error) {
 		return
 	}
 
-	return t, nil
-}
-
-// NewTaskFromModel used in scheduler for building the task from the db model task
-func NewTaskFromModel(t models.Task) (tRes task, err error) {
-
-	tRes.Id = t.ID
-	tRes.SensorId = t.SensorID
-	tRes.Name = TaskName
-
-	// build the opts
-	var o = Opts{}
-	err = json.Unmarshal(t.Opts, &o)
-	if err != nil {
-		err = fmt.Errorf("traceroute NewTaskFromModel Unmarshal Opts err:%v", err)
-		return
+	if t.Opts.NetCapRaw {
+		t.SysUnix = &SysUnixReal{}
+	} else {
+		t.SysUnix = testingkit.MockedSysUnix{}
 	}
-	tRes.Opts = o
-	return
+	return t, nil
 }
 
 // run is the entry point for the traceroute task
@@ -79,6 +66,42 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 	return resJson, nil
+}
+
+// SysUnixReal will be used for the real socket operation methods
+// should these methods be defined in structs.go?
+type SysUnixReal struct{}
+
+func (s SysUnixReal) Socket(domain int, typ int, proto int) (fd int, err error) {
+	return unix.Socket(domain, typ, proto)
+}
+
+func (s SysUnixReal) Close(fd int) (err error) {
+	return unix.Close(fd)
+}
+
+func (s SysUnixReal) Bind(fd int, sa unix.Sockaddr) (err error) {
+	return unix.Bind(fd, sa)
+}
+
+func (s SysUnixReal) SetsockoptInt(fd int, level int, opt int, value int) error {
+	return unix.SetsockoptInt(fd, level, opt, value)
+}
+
+func (s SysUnixReal) SetsockoptTimeval(fd int, level int, opt int, tv *unix.Timeval) error {
+	return unix.SetsockoptTimeval(fd, level, opt, tv)
+}
+
+func (s SysUnixReal) Sendto(fd int, p []byte, flags int, to unix.Sockaddr) (err error) {
+	return unix.Sendto(fd, p, flags, to)
+}
+
+func (s SysUnixReal) Recvfrom(fd int, p []byte, flags int) (n int, from unix.Sockaddr, err error) {
+	return unix.Recvfrom(fd, p, flags)
+}
+
+func (s SysUnixReal) NsecToTimeval(nsec int64) unix.Timeval {
+	return unix.NsecToTimeval(nsec)
 }
 
 // // socketAddr return the first non-loopback address as a 4 byte IP address. This address
@@ -107,7 +130,7 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 func (t *task) runHop() (hop Hop, err error) {
 	hop = Hop{}
 	// set the current hop TTL
-	err = unix.SetsockoptInt(t.SendSocket, 0x0, unix.IP_TTL, t.TTL)
+	err = t.SysUnix.SetsockoptInt(t.SendSocket, 0x0, unix.IP_TTL, t.TTL)
 	if err != nil {
 		return hop, err
 	}
@@ -116,14 +139,14 @@ func (t *task) runHop() (hop Hop, err error) {
 	for retries := 0; retries < t.Retries; retries++ {
 
 		// send empty udp packet
-		err = unix.Sendto(t.SendSocket, []byte{0}, 0, &unix.SockaddrInet4{Port: t.Port, Addr: t.Dest})
+		err = t.SysUnix.Sendto(t.SendSocket, []byte{0}, 0, &unix.SockaddrInet4{Port: t.Port, Addr: t.Dest})
 		if err != nil {
 			loggerTraceroute.Errorf("Failed to send packet on hop #%d: %v", t.TTL, err)
 			continue //retry sending
 		}
 
 		// read the ICMP response into the buffer we created
-		bReceived, from, err := unix.Recvfrom(t.ReceiveSocket, t.Packet, 0)
+		bReceived, from, err := t.SysUnix.Recvfrom(t.ReceiveSocket, t.Packet, 0)
 		if err != nil {
 			loggerTraceroute.Errorf("Failed to receive packet on hop #%d: %v", t.TTL, err)
 			continue //retry receiving
@@ -216,7 +239,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	// initialize the function with options from the task
 	maxTracerouteTimeout := 60 * time.Second // arbitrary timeout
 	timeoutMs := (int64)(t.Timeout)
-	timeValue := unix.NsecToTimeval(1000 * 1000 * timeoutMs)
+	timeValue := t.SysUnix.NsecToTimeval(1000 * 1000 * timeoutMs)
 	t.TTL = t.FirstHop
 	t.Packet = make([]byte, t.Packetsize) // create packet buffer that will store the ICMP response
 
@@ -225,34 +248,34 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 	defer cancel()
 
 	// set up raw socket for receiving ICMP replies
-	t.ReceiveSocket, err = unix.Socket(unix.AF_INET, unix.SOCK_RAW, unix.IPPROTO_ICMP)
+	t.ReceiveSocket, err = t.SysUnix.Socket(unix.AF_INET, unix.SOCK_RAW, unix.IPPROTO_ICMP)
 	if err != nil {
 		loggerTraceroute.Error("error creating socket: ", err)
 		return res, err
 	}
-	defer unix.Close(t.ReceiveSocket)
+	defer t.SysUnix.Close(t.ReceiveSocket)
 
 	// bind the receive socket to 0.0.0.0 to listen on all interfaces
-	err = unix.Bind(t.ReceiveSocket, &unix.SockaddrInet4{})
+	err = t.SysUnix.Bind(t.ReceiveSocket, &unix.SockaddrInet4{})
 	if err != nil {
 		loggerTraceroute.Error("error binding socket", err)
 		return res, err
 	}
 
 	// set the timeout for the socket
-	err = unix.SetsockoptTimeval(t.ReceiveSocket, unix.SOL_SOCKET, unix.SO_RCVTIMEO, &timeValue)
+	err = t.SysUnix.SetsockoptTimeval(t.ReceiveSocket, unix.SOL_SOCKET, unix.SO_RCVTIMEO, &timeValue)
 	if err != nil {
 		loggerTraceroute.Error("error setting timeout", err)
 		return res, err
 	}
 
 	// set up datagram socket for sending UDP packets
-	t.SendSocket, err = unix.Socket(unix.AF_INET, unix.SOCK_DGRAM, unix.IPPROTO_UDP)
+	t.SendSocket, err = t.SysUnix.Socket(unix.AF_INET, unix.SOCK_DGRAM, unix.IPPROTO_UDP)
 	if err != nil {
 		loggerTraceroute.Error("error creating socket: ", err)
 		return res, err
 	}
-	defer unix.Close(t.SendSocket)
+	defer t.SysUnix.Close(t.SendSocket)
 
 	// start the main loop
 	for {

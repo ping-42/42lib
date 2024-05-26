@@ -1,4 +1,4 @@
-package tastingkit
+package testingkit
 
 import (
 	"net"
