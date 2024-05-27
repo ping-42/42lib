@@ -1,6 +1,11 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Task struct {
 	ID                   uuid.UUID          `gorm:"type:uuid;primary_key;" json:"id"`
@@ -12,6 +17,7 @@ type Task struct {
 	Sensor               Sensor             `gorm:"foreignKey:SensorID"`
 	ClientSubscriptionID uint64             //FK to ClientSubscription.id
 	ClientSubscription   ClientSubscription `gorm:"foreignKey:ClientSubscriptionID"`
+	CreatedAt            time.Time          `gorm:"type:TIMESTAMPTZ;"`
 	Opts                 []byte             `gorm:"type:jsonb"`
 }
 
@@ -23,4 +29,13 @@ type LvTaskType struct {
 type LvTaskStatus struct {
 	ID     uint8 `gorm:"primaryKey;autoIncrement"`
 	Status string
+}
+
+func GetLatestSensorTasks(db *gorm.DB, sensorIds []string) (tasks []Task, err error) {
+	err = db.Raw(`SELECT sensor_id
+	,max(created_at) AS created_at
+	FROM tasks
+	WHERE sensor_id IN ?
+	GROUP BY sensor_id;`, sensorIds).Scan(&tasks).Error
+	return
 }
