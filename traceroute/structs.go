@@ -1,6 +1,7 @@
 package traceroute
 
 import (
+	"net"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,8 +21,8 @@ type task struct {
 // Opts for the task
 type Opts struct {
 	Port          int      `json:"Port"`
-	Dest          [4]byte  `json:"Dest"`
-	CurrentAddr   [4]byte  `json:"CurrentAddr"`
+	Dest          net.IP   `json:"Dest"`
+	CurrentAddr   net.IP   `json:"CurrentAddr"`
 	CurrentHost   []string `json:"CurrentHost"`
 	ReceiveSocket int      `json:"ReceiveSocket"`
 	SendSocket    int      `json:"SendSocket"`
@@ -63,7 +64,7 @@ func (t task) GetName() sensor.TaskName {
 // Traceroute Hop type
 type Hop struct {
 	Success       bool
-	Address       [4]byte
+	Address       net.IP
 	Host          string
 	BytesReceived int
 	ElapsedTime   time.Duration
@@ -72,6 +73,6 @@ type Hop struct {
 }
 
 type Result struct {
-	DestinationAdress [4]byte
+	DestinationAdress net.IP
 	Hops              []Hop
 }
