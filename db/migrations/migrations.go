@@ -74,65 +74,69 @@ func migrate(db *gorm.DB) error {
 
 				// hypertables for timeseries data
 				err = tx.Exec(`
-					SELECT create_hypertable('ts_host_runtime_stats', by_range('time'));
-					--
-					SELECT create_hypertable('ts_dns_results', by_range('time'));
-					SELECT create_hypertable('ts_dns_results_answer', by_range('time'));
-					--
-					SELECT create_hypertable('ts_http_results', by_range('time'));
-					--
-					SELECT create_hypertable('ts_icmp_results', by_range('time'));
-					--
-					SELECT create_hypertable('ts_traceroute_results', by_range('time'));`).Error
+                    SELECT create_hypertable('ts_host_runtime_stats', by_range('time'));
+                    --
+                    SELECT create_hypertable('ts_dns_results', by_range('time'));
+                    SELECT create_hypertable('ts_dns_results_answer', by_range('time'));
+                    --
+                    SELECT create_hypertable('ts_http_results', by_range('time'));
+                    --
+                    SELECT create_hypertable('ts_icmp_results', by_range('time'));
+                    --
+                    SELECT create_hypertable('ts_traceroute_results', by_range('time'));
+                    SELECT create_hypertable('ts_hop_results', by_range('time'));`).Error
 				if err != nil {
 					return err
 				}
 
 				// indices
 				err = tx.Exec(`
-					CREATE INDEX idx_runtime_sensor_time ON ts_host_runtime_stats (sensor_id, time DESC);
-					--
-					CREATE INDEX idx_dns_results_sensor_time ON ts_dns_results (sensor_id, time DESC);
-					CREATE INDEX idx_dns_results_answer_sensor_time ON ts_dns_results_answer (sensor_id, time DESC);
-					-- CREATE INDEX idx_dns_results_task ON ts_dns_results (task_id);
-					-- CREATE INDEX idx_dns_results_answer_task ON ts_dns_results_answer (task_id);
-					--
-					CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
-					--
-					CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
-					--
-					CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);`).Error
+                    CREATE INDEX idx_runtime_sensor_time ON ts_host_runtime_stats (sensor_id, time DESC);
+                    --
+                    CREATE INDEX idx_dns_results_sensor_time ON ts_dns_results (sensor_id, time DESC);
+                    CREATE INDEX idx_dns_results_answer_sensor_time ON ts_dns_results_answer (sensor_id, time DESC);
+                    -- CREATE INDEX idx_dns_results_task ON ts_dns_results (task_id);
+                    -- CREATE INDEX idx_dns_results_answer_task ON ts_dns_results_answer (task_id);
+                    --
+                    CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
+                    --
+                    CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
+                    --
+                    CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
+                    CREATE INDEX idx_hop_results_sensor_time ON ts_hop_results (sensor_id, time DESC);
+                    -- CREATE INDEX idx_traceroute_results_task ON ts_traceroute_results (task_id);
+                    -- CREATE INDEX idx_hop_results_task ON ts_hop_results (task_id);`).Error
 				if err != nil {
 					return err
 				}
 
 				// lookup values
 				err = tx.Exec(`
-					INSERT INTO lv_task_types(id, type) VALUES (1, 'DNS_TASK');
-					INSERT INTO lv_task_types(id, type) VALUES (2, 'ICMP_TASK');
-					INSERT INTO lv_task_types(id, type) VALUES (3, 'HTTP_TASK');
-					INSERT INTO lv_task_types(id, type) VALUES (4, 'TRACEROUTE_TASK');`).Error
+                    INSERT INTO lv_task_types(id, type) VALUES (1, 'DNS_TASK');
+                    INSERT INTO lv_task_types(id, type) VALUES (2, 'ICMP_TASK');
+                    INSERT INTO lv_task_types(id, type) VALUES (3, 'HTTP_TASK');
+                    INSERT INTO lv_task_types(id, type) VALUES (4, 'TRACEROUTE_TASK');`).Error
 				if err != nil {
 					return err
 				}
 
 				err = tx.Exec(`
-					INSERT INTO lv_protocols(id, type) VALUES (1, 'TCP');
-					INSERT INTO lv_protocols(id, type) VALUES (2, 'UDP');`).Error
+                    INSERT INTO lv_protocols(id, type) VALUES (1, 'TCP');
+                    INSERT INTO lv_protocols(id, type) VALUES (2, 'UDP');`).Error
 				if err != nil {
 					return err
 				}
 
 				err = tx.Exec(`
-					INSERT INTO lv_task_statuses(id, status) VALUES (1, 'INITIATED_BY_SCHEDULER');
-					INSERT INTO lv_task_statuses(id, status) VALUES (2, 'PUBLISHED_TO_REDIS_BY_SCHEDULER');
-					INSERT INTO lv_task_statuses(id, status) VALUES (3, 'RECEIVED_BY_SERVER');
-					INSERT INTO lv_task_statuses(id, status) VALUES (4, 'SENT_TO_SENSOR_BY_SERVER');
-					INSERT INTO lv_task_statuses(id, status) VALUES (5, 'RECEIVED_BY_SENSOR');
-					INSERT INTO lv_task_statuses(id, status) VALUES (6, 'RESULTS_SENT_TO_SERVER_BY_SENSOR');
-					INSERT INTO lv_task_statuses(id, status) VALUES (7, 'RESULTS_RECEIVED_BY_SERVER');
-					INSERT INTO lv_task_statuses(id, status) VALUES (8, 'DONE');
-					INSERT INTO lv_task_statuses(id, status) VALUES (9, 'ERROR');`).Error
+                    INSERT INTO lv_task_statuses(id, status) VALUES (1, 'INITIATED_BY_SCHEDULER');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (2, 'PUBLISHED_TO_REDIS_BY_SCHEDULER');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (3, 'RECEIVED_BY_SERVER');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (4, 'SENT_TO_SENSOR_BY_SERVER');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (5, 'RECEIVED_BY_SENSOR');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (6, 'RESULTS_SENT_TO_SERVER_BY_SENSOR');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (7, 'RESULTS_RECEIVED_BY_SERVER');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (8, 'DONE');
+                    INSERT INTO lv_task_statuses(id, status) VALUES (9, 'ERROR');`).Error
 				return err
 			},
 			Rollback: func(tx *gorm.DB) error {

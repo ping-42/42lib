@@ -61,7 +61,7 @@ type TsIcmpResult struct {
 type TsHopResult struct {
 	TsSensorTaskBase
 	Success       bool
-	Address       [4]byte
+	Address       net.IP `gorm:"type:inet"`
 	Host          string
 	BytesReceived int
 	ElapsedTime   time.Duration
@@ -70,9 +70,11 @@ type TsHopResult struct {
 }
 
 type TsTracerouteResult struct {
-	DestinationAdress [4]byte
-	Hops              []TsHopResult
+	TsSensorTaskBase
+	DestinationAdress net.IP        `gorm:"type:inet"`
+	Hops              []TsHopResult `gorm:"type:jsonb"` // question: is this efficient?
 }
 
-// TODO: convert address fields to net.IP in the traceroute package?
-// TODO: gorm type for Hops slice
+func (TsHopResult) TableName() string {
+	return "ts_hop_results"
+}
