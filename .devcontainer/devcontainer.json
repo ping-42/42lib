@@ -90,6 +90,18 @@
             "contents": "write",
             "workflows": "write"
           }
+        },
+        "ping-42/admin-ui": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
+        },
+        "ping-42/admin-api": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
         }
       },
       // Shut up the annoying message on bootup, courtesy of a permission bug - see update.sh
