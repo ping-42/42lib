@@ -15,6 +15,14 @@
 		{
 			"name": "Scheduler",
 			"path": "/workspaces/scheduler"
+		},
+		{
+			"name": "AdminUi",
+			"path": "/workspaces/admin-ui"
+		},
+		{
+			"name": "AdminApi",
+			"path": "/workspaces/admin-api"
 		}
 	],
 	"launch": {
@@ -48,6 +56,24 @@
 				"request": "launch",
 				"mode": "auto",
 				"program": "/workspaces/scheduler/scheduler"
+			},
+			{
+				"name": "AdminApi",
+				"type": "go",
+				"request": "launch",
+				"mode": "auto",
+				"program": "/workspaces/admin-api/"
+			},
+			{
+				"name": "AdminUi",
+				"type": "node",
+				"request": "launch",
+				"program": "/workspaces/admin-ui/node_modules/.bin/react-scripts",
+				"args": ["start"],
+				"runtimeArgs": ["run-script"],
+				"cwd": "/workspaces/admin-ui",
+				"console": "integratedTerminal",
+				"internalConsoleOptions": "neverOpen"
 			}
 		]
 	},
@@ -73,7 +99,9 @@
 			"yzhang.markdown-all-in-one",
 			"github.vscode-github-actions",
 			"ms-vscode-remote.remote-containers",
-			"ms-azuretools.vscode-docker"
+			"ms-azuretools.vscode-docker",
+			"esbenp.prettier-vscode",  // Prettier for code formatting
+			"dbaeumer.vscode-eslint"  // ESLint for JavaScript/TypeScript linting
 		]
 	},
 }
