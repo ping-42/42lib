@@ -9,7 +9,7 @@ echo "[*] Updating codebase..."
 # https://docs.github.com/en/codespaces/prebuilding-your-codespaces/configuring-prebuilds
 
 # All of our repos
-REPOS=("sensor" "server" "scheduler")
+REPOS=("sensor" "server" "scheduler" "admin-ui" "admin-api")
 
 # Change the volume ownership for configs to work
 sudo chown vscode: -R "${HOME}/.config"
