@@ -30,13 +30,9 @@
       "version": "latest"
     },
     "ghcr.io/devcontainers-contrib/features/gh-cli:1": {},
-    // Disabled as we no longer use GCP
-    // "ghcr.io/dhoeric/features/google-cloud-cli:1": {
-    //   "version": "latest"
-    // },
     // Ubuntu apt-get packages to install
     "ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {
-      "packages": "iputils-ping"
+      "packages": ["iputils-ping", "postgresql-client"]
     },
     // Docker Compose and friends
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
@@ -128,19 +124,30 @@
     }
   },
   "remoteEnv": {
-    // POSTGRE
-    "POSTGRES_HOST":"127.0.0.1",
-    "POSTGRES_USER":"ping42",
+    // POSTGRES
+    "POSTGRES_HOST": "127.0.0.1",
+    "POSTGRES_USER": "ping42",
     "POSTGRES_DB": "ping42",
-    "POSTGRES_PASSWORD":"ping42.eth.postgres",
+    "POSTGRES_PASSWORD": "ping42.eth.postgres",
 
     // REDIS
-    "REDIS_HOST":"localhost:6379",
-    "REDIS_PASSWORD":"ping42.eth.redis",
+    "REDIS_HOST": "localhost:6379",
+    "REDIS_PASSWORD": "ping42.eth.redis",
 
     // SENSOR TOKEN - USED FOR DEVELOPMENT
-    "PING42_SENSOR_TOKEN":"ewogICAiU2Vuc29ySWQiOiJiOWRjM2QyMC0yNTZiLTRhYzctOGNhZS0yZjZkYzk2MmUxODMiLAogICAiU2VjcmV0Ijoic2Vuc29yU2VjcmV0MTIzISIKfQ==",
+    "PING42_SENSOR_TOKEN": "ewogICAiU2Vuc29ySWQiOiJiOWRjM2QyMC0yNTZiLTRhYzctOGNhZS0yZjZkYzk2MmUxODMiLAogICAiU2VjcmV0Ijoic2Vuc29yU2VjcmV0MTIzISIKfQ==",
     // Server address, by default is: wss://api.ping42.net
-    "PING42_TELEMETRY_SERVER":"ws://localhost:8080"
+    "PING42_TELEMETRY_SERVER": "ws://localhost:8080"
+  },
+  "portsAttributes": {
+    "5432": {
+      "label": "Timescale DB"
+    },
+    "6379": {
+      "label": "Redis Cache"
+    },
+    "8081": {
+      "label": "Admin API"
+    }
   }
 }
