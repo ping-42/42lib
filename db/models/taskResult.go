@@ -66,13 +66,12 @@ type TsHopResult struct {
 	BytesReceived int
 	ElapsedTime   time.Duration
 	TTL           int
-	Error         error
+	Error         string
 }
 
 type TsTracerouteResult struct {
 	TsSensorTaskBase
-	DestinationAdress net.IP        `gorm:"type:inet"`
-	Hops              []TsHopResult `gorm:"type:jsonb"` // question: is this efficient?
+	DestinationAdress net.IP `gorm:"type:inet"`
 }
 
 func (TsHopResult) TableName() string {
