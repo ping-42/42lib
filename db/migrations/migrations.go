@@ -65,7 +65,7 @@ func migrate(db *gorm.DB) error {
 					&models.TsDnsResultAnswer{},
 					&models.TsHttpResult{},
 					&models.TsIcmpResult{},
-					&models.TsHopResult{},
+					&models.TsTracerouteResultHop{},
 					&models.TsTracerouteResult{},
 				)
 				if err != nil {
@@ -84,7 +84,7 @@ func migrate(db *gorm.DB) error {
                     SELECT create_hypertable('ts_icmp_results', by_range('time'));
                     --
                     SELECT create_hypertable('ts_traceroute_results', by_range('time'));
-                    SELECT create_hypertable('ts_hop_results', by_range('time'));`).Error
+                    SELECT create_hypertable('ts_traceroute_results_hop', by_range('time'));`).Error
 				if err != nil {
 					return err
 				}
@@ -103,9 +103,9 @@ func migrate(db *gorm.DB) error {
                     CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
                     --
                     CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
-                    CREATE INDEX idx_hop_results_sensor_time ON ts_hop_results (sensor_id, time DESC);
+                    CREATE INDEX idx_traceroute_results_hop_sensor_time ON ts_traceroute_results_hop (sensor_id, time DESC);
                     -- CREATE INDEX idx_traceroute_results_task ON ts_traceroute_results (task_id);
-                    -- CREATE INDEX idx_hop_results_task ON ts_hop_results (task_id);`).Error
+                    -- CREATE INDEX idx_traceroute_results_hop_task ON ts_traceroute_results_hop (task_id);`).Error
 				if err != nil {
 					return err
 				}

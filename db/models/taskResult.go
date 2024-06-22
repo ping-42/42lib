@@ -58,7 +58,12 @@ type TsIcmpResult struct {
 	FailureMessages string
 }
 
-type TsHopResult struct {
+type TsTracerouteResult struct {
+	TsSensorTaskBase
+	DestinationAdress net.IP `gorm:"type:inet"`
+}
+
+type TsTracerouteResultHop struct {
 	TsSensorTaskBase
 	Success       bool
 	Address       net.IP `gorm:"type:inet"`
@@ -69,11 +74,6 @@ type TsHopResult struct {
 	Error         string
 }
 
-type TsTracerouteResult struct {
-	TsSensorTaskBase
-	DestinationAdress net.IP `gorm:"type:inet"`
-}
-
-func (TsHopResult) TableName() string {
-	return "ts_hop_results"
+func (TsTracerouteResultHop) TableName() string {
+	return "ts_traceroute_results_hop"
 }
