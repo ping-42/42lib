@@ -100,12 +100,7 @@ func migrate(db *gorm.DB) error {
                     --
                     CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
                     --
-                    CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
-                    --
-                    CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
-                    CREATE INDEX idx_traceroute_results_hop_sensor_time ON ts_traceroute_results_hop (sensor_id, time DESC);
-                    -- CREATE INDEX idx_traceroute_results_task ON ts_traceroute_results (task_id);
-                    -- CREATE INDEX idx_traceroute_results_hop_task ON ts_traceroute_results_hop (task_id);`).Error
+                    CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);`).Error
 				if err != nil {
 					return err
 				}
@@ -156,6 +151,20 @@ func migrate(db *gorm.DB) error {
 			ID: "for-squash-2",
 			Migrate: func(tx *gorm.DB) error {
 				return tx.Migrator().AddColumn(&models.Task{}, "CreatedAt")
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		},
+		{
+			ID: "add-traceroute-indexes",
+			Migrate: func(tx *gorm.DB) error {
+				// traceroute indices
+				return tx.Exec(`
+                    CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
+                    CREATE INDEX idx_traceroute_results_hop_sensor_time ON ts_traceroute_results_hop (sensor_id, time DESC);
+                    CREATE INDEX idx_traceroute_results_task ON ts_traceroute_results (task_id);
+                    CREATE INDEX idx_traceroute_results_hop_task ON ts_traceroute_results_hop (task_id);`).Error
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Rollback().Error
