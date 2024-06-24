@@ -157,7 +157,7 @@ func migrate(db *gorm.DB) error {
 			},
 		},
 		{
-			ID: "add-traceroute-indexes",
+			ID: "for-squash-3",
 			Migrate: func(tx *gorm.DB) error {
 				// traceroute indices
 				return tx.Exec(`
