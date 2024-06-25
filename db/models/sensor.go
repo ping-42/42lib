@@ -3,7 +3,9 @@ package models
 import "github.com/google/uuid"
 
 type Sensor struct {
-	ID       uuid.UUID `gorm:"primaryKey;autoIncrement"`
+	ID uuid.UUID `gorm:"primaryKey"`
+	// UserID   uuid.UUID //FK to User.id // TODO: since User is created after Sensor the migrations failing...
+	// User     User      `gorm:"foreignKey:UserID"`
 	Name     string
 	Location string
 	Secret   string

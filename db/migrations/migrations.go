@@ -157,6 +157,43 @@ func migrate(db *gorm.DB) error {
 				return tx.Rollback().Error
 			},
 		},
+		{
+			ID: "create-user-tables",
+			Migrate: func(tx *gorm.DB) error {
+
+				err := tx.Migrator().CreateTable(
+					&models.LvUserGroup{},
+					&models.LvPermission{},
+					&models.User{},
+					&models.PermissionToUserGroup{},
+				)
+				if err != nil {
+					return err
+				}
+
+				err = tx.Exec(`
+					INSERT INTO lv_user_groups(id, group_name) VALUES (1, 'admin');
+					INSERT INTO lv_user_groups(id, group_name) VALUES (2, 'user');
+					--
+					INSERT INTO lv_permissions(id, permission) VALUES (1, 'read');
+					INSERT INTO lv_permissions(id, permission) VALUES (2, 'create');
+					INSERT INTO lv_permissions(id, permission) VALUES (3, 'update');
+					INSERT INTO lv_permissions(id, permission) VALUES (4, 'delete');
+					--
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 1);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 2);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 3);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 4);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 1);
+					--
+					INSERT INTO user(id, wallet_address, user_group) VALUES ('63e76fbd-77cf-4470-bcb0-25c72b09a504', '0xd694cfc8c66e34371eae8ebe03d54867e5c6cec4', 1);
+					`).Error
+				return err
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		},
 	}
 
 	// dev demo data
