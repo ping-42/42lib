@@ -158,7 +158,7 @@ func (t *task) runHop() (hop Hop, err error) {
 	for retries := 0; retries < t.Retries; retries++ {
 
 		// send empty udp packet
-		err = t.SysUnix.Sendto(t.SendSocket, []byte{0}, 0, &unix.SockaddrInet4{Port: t.Port, Addr: t.Dest})
+		err = t.SysUnix.Sendto(t.SendSocket, []byte{0}, 0, &unix.SockaddrInet4{Port: t.Port, Addr: [4]byte(t.Dest.To4())})
 		if err != nil {
 			loggerTraceroute.Errorf("Failed to send packet on hop #%d: %v", t.TTL, err)
 			continue //retry sending
@@ -172,7 +172,7 @@ func (t *task) runHop() (hop Hop, err error) {
 		}
 
 		// get the current address
-		t.CurrentAddr = from.(*unix.SockaddrInet4).Addr
+		t.CurrentAddr = net.IP(from.(*unix.SockaddrInet4).Addr[:])
 		addrStr := fmt.Sprintf("%d.%d.%d.%d", t.CurrentAddr[0], t.CurrentAddr[1], t.CurrentAddr[2], t.CurrentAddr[3])
 
 		// parse the ICMP message
@@ -310,7 +310,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 
 		res.Hops = append(res.Hops, hop)
 		t.TTL += 1
-		if t.TTL > t.MaxHops || t.CurrentAddr == t.Dest {
+		if t.TTL > t.MaxHops || t.CurrentAddr.Equal(t.Dest) {
 			loggerTraceroute.Infof("res: %+v", res)
 			return res, nil
 		}
