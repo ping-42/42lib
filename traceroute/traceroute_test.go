@@ -48,7 +48,7 @@ func TestTracerouteTaskMocked(t *testing.T) {
 	}
 
 	// mock message with default win payload
-	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":[8,8,8,8],"FirstHop":1,"MaxHops":64,"Timeout":500,"PacketSize":52,"Retries":3, "NetCapRaw":true}}`)
+	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":"8.8.8.8","FirstHop":1,"MaxHops":64,"Timeout":500,"PacketSize":52,"Retries":3, "NetCapRaw":true}}`)
 
 	// Create an instance of the traceroute task with default options
 	tracerouteTask, err := NewTaskFromBytes(receivedMessage)
@@ -76,7 +76,7 @@ func TestTracerouteTaskMocked(t *testing.T) {
 func TestTracerouteTaskReal(t *testing.T) {
 
 	// mock message with default win payload
-	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":[8,8,8,8],"FirstHop":1,"MaxHops":64,"Timeout":500,"PacketSize":52,"Retries":3,"NetCapRaw":true}}`)
+	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":"8.8.8.8","FirstHop":1,"MaxHops":64,"Timeout":500,"PacketSize":52,"Retries":3,"NetCapRaw":true}}`)
 
 	// Create an instance of the traceroute task with default options
 	tracerouteTask, err := NewTaskFromBytes(receivedMessage)
