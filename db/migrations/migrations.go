@@ -52,8 +52,14 @@ func migrate(db *gorm.DB) error {
 					ClientSubscription   models.ClientSubscription `gorm:"foreignKey:ClientSubscriptionID"`
 					Opts                 []byte                    `gorm:"type:jsonb"`
 				}
+				type Sensor struct {
+					ID       uuid.UUID `gorm:"primaryKey"`
+					Name     string
+					Location string
+					Secret   string
+				}
 				err := tx.Migrator().CreateTable(
-					&models.Sensor{},
+					&Sensor{},
 					&models.LvTaskType{},
 					&models.LvTaskStatus{},
 					&models.LvProtocol{},
@@ -183,6 +189,10 @@ func migrate(db *gorm.DB) error {
 					return err
 				}
 
+				tx.Migrator().AddColumn(&models.Sensor{}, "UserID")
+				tx.Migrator().AddColumn(&models.Sensor{}, "IsActive")
+				tx.Migrator().AddColumn(&models.Sensor{}, "CreatedAt")
+
 				err = tx.Exec(`
 					INSERT INTO lv_user_groups(id, group_name) VALUES (1, 'admin');
 					INSERT INTO lv_user_groups(id, group_name) VALUES (2, 'user');
@@ -197,8 +207,9 @@ func migrate(db *gorm.DB) error {
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 3);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 4);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 1);
-					--
-					INSERT INTO user(id, wallet_address, user_group) VALUES ('63e76fbd-77cf-4470-bcb0-25c72b09a504', '0xd694cfc8c66e34371eae8ebe03d54867e5c6cec4', 1);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 2);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 3);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 4);;
 					`).Error
 				return err
 			},
@@ -229,6 +240,18 @@ func migrate(db *gorm.DB) error {
 			ID: "dev-seeds-sensor-ranks",
 			Migrate: func(tx *gorm.DB) error {
 				return tx.Exec(`INSERT INTO sensor_ranks(id, sensor_id, rank, distribution_rank, created_at) VALUES (1, 'b9dc3d20-256b-4ac7-8cae-2f6dc962e183', 5, 0, now());`).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		})
+
+		migrations = append(migrations, &gormigrate.Migration{
+			ID: "dev-seeds-user-to-sensors-relation",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.Exec(`
+				INSERT INTO users(id, wallet_address, user_group_id) VALUES ('63e76fbd-77cf-4470-bcb0-25c72b09a504', '0xd694cfc8c66e34371eae8ebe03d54867e5c6cec4', 1);
+				UPDATE sensors SET user_id = '63e76fbd-77cf-4470-bcb0-25c72b09a504', is_active = true, created_at = now() WHERE id='b9dc3d20-256b-4ac7-8cae-2f6dc962e183';`).Error
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Rollback().Error
