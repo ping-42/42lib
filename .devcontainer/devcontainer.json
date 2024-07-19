@@ -137,7 +137,9 @@
     // SENSOR TOKEN - USED FOR DEVELOPMENT
     "PING42_SENSOR_TOKEN": "ewogICAiU2Vuc29ySWQiOiJiOWRjM2QyMC0yNTZiLTRhYzctOGNhZS0yZjZkYzk2MmUxODMiLAogICAiU2VjcmV0Ijoic2Vuc29yU2VjcmV0MTIzISIKfQ==",
     // Server address, by default is: wss://api.ping42.net
-    "PING42_TELEMETRY_SERVER": "ws://localhost:8080"
+    "PING42_TELEMETRY_SERVER":"ws://localhost:8080",
+    //
+    "ADMIN_API_JWT_SECRET":"fdsfsv!fdsfs!F!Aа1239"
   },
   "portsAttributes": {
     "5432": {

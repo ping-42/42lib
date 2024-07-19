@@ -1,12 +1,20 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Sensor struct {
-	ID       uuid.UUID `gorm:"primaryKey;autoIncrement"`
-	Name     string
-	Location string
-	Secret   string
+	ID        uuid.UUID `gorm:"primaryKey"`
+	UserID    uuid.UUID
+	User      User `gorm:"foreignKey:UserID"`
+	Name      string
+	Location  string
+	Secret    string
+	IsActive  bool
+	CreatedAt time.Time
 }
 
 // type SensorSupportedTaskTypes struct {
