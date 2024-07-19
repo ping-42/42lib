@@ -189,9 +189,18 @@ func migrate(db *gorm.DB) error {
 					return err
 				}
 
-				tx.Migrator().AddColumn(&models.Sensor{}, "UserID")
-				tx.Migrator().AddColumn(&models.Sensor{}, "IsActive")
-				tx.Migrator().AddColumn(&models.Sensor{}, "CreatedAt")
+				err = tx.Migrator().AddColumn(&models.Sensor{}, "UserID")
+				if err != nil {
+					return err
+				}
+				err = tx.Migrator().AddColumn(&models.Sensor{}, "IsActive")
+				if err != nil {
+					return err
+				}
+				err = tx.Migrator().AddColumn(&models.Sensor{}, "CreatedAt")
+				if err != nil {
+					return err
+				}
 
 				err = tx.Exec(`
 					INSERT INTO lv_user_groups(id, group_name) VALUES (1, 'admin');
