@@ -8,8 +8,8 @@ import (
 
 type Sensor struct {
 	ID        uuid.UUID `gorm:"primaryKey"`
-	UserID    uuid.UUID //FK to User.id // TODO: since User is created after Sensor the migrations failing...
-	User      User      `gorm:"foreignKey:UserID"`
+	UserID    uuid.UUID
+	User      User `gorm:"foreignKey:UserID"`
 	Name      string
 	Location  string
 	Secret    string
