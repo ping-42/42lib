@@ -2,15 +2,15 @@ package models
 
 import "github.com/google/uuid"
 
-type Organisation struct {
+type Organization struct {
 	ID   uuid.UUID `gorm:"primaryKey"`
 	Name string
 }
 
 type User struct {
 	ID             uuid.UUID    `gorm:"primaryKey"`
-	OrganisationID uuid.UUID    //FK to Organisation.id
-	Organisation   Organisation `gorm:"foreignKey:OrganisationID"`
+	OrganizationID uuid.UUID    //FK to Organization.id
+	Organization   Organization `gorm:"foreignKey:OrganizationID"`
 	WalletAddress  string       `gorm:"uniqueIndex"`
 	Email          string       `gorm:"uniqueIndex"`
 	UserGroupID    uint64       //FK to UserGroup.id

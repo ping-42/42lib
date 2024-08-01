@@ -8,8 +8,8 @@ import (
 
 type Sensor struct {
 	ID             uuid.UUID `gorm:"primaryKey"`
-	OrganisationID uuid.UUID
-	Organisation   Organisation `gorm:"foreignKey:OrganisationID"`
+	OrganizationID uuid.UUID
+	Organization   Organization `gorm:"foreignKey:OrganizationID"`
 	Name           string
 	Location       string
 	Secret         string

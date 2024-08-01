@@ -182,7 +182,7 @@ func migrate(db *gorm.DB) error {
 				err := tx.Migrator().CreateTable(
 					&models.LvUserGroup{},
 					&models.LvPermission{},
-					&models.Organisation{},
+					&models.Organization{},
 					&models.User{},
 					&models.PermissionToUserGroup{},
 				)
@@ -190,7 +190,7 @@ func migrate(db *gorm.DB) error {
 					return err
 				}
 
-				err = tx.Migrator().AddColumn(&models.Sensor{}, "OrganisationID")
+				err = tx.Migrator().AddColumn(&models.Sensor{}, "OrganizationID")
 				if err != nil {
 					return err
 				}
@@ -262,18 +262,18 @@ func migrate(db *gorm.DB) error {
 		})
 
 		migrations = append(migrations, &gormigrate.Migration{
-			ID: "dev-seeds-organisation-to-sensors-relation",
+			ID: "dev-seeds-organization-to-sensors-relation",
 			Migrate: func(tx *gorm.DB) error {
 
 				err := tx.Exec(`
-				INSERT INTO organisations(id, name) VALUES ('10e76fbd-77cf-4470-bcb0-25c72b09a511', 'test seed org');`)
+				INSERT INTO organizations(id, name) VALUES ('10e76fbd-77cf-4470-bcb0-25c72b09a511', 'test seed org');`)
 				if err.Error != nil {
 					return err.Error
 				}
 
 				return tx.Exec(`
-				INSERT INTO users(id, wallet_address, user_group_id, organisation_id) VALUES ('63e76fbd-77cf-4470-bcb0-25c72b09a504', '0xd694cfc8c66e34371eae8ebe03d54867e5c6cec4', 1, '10e76fbd-77cf-4470-bcb0-25c72b09a511');
-				UPDATE sensors SET organisation_id = '10e76fbd-77cf-4470-bcb0-25c72b09a511', is_active = true, created_at = now() WHERE id='b9dc3d20-256b-4ac7-8cae-2f6dc962e183';`).Error
+				INSERT INTO users(id, wallet_address, user_group_id, organization_id) VALUES ('63e76fbd-77cf-4470-bcb0-25c72b09a504', '0xd694cfc8c66e34371eae8ebe03d54867e5c6cec4', 1, '10e76fbd-77cf-4470-bcb0-25c72b09a511');
+				UPDATE sensors SET organization_id = '10e76fbd-77cf-4470-bcb0-25c72b09a511', is_active = true, created_at = now() WHERE id='b9dc3d20-256b-4ac7-8cae-2f6dc962e183';`).Error
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Rollback().Error
