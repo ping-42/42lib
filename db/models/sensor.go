@@ -7,14 +7,14 @@ import (
 )
 
 type Sensor struct {
-	ID        uuid.UUID `gorm:"primaryKey"`
-	UserID    uuid.UUID
-	User      User `gorm:"foreignKey:UserID"`
-	Name      string
-	Location  string
-	Secret    string
-	IsActive  bool
-	CreatedAt time.Time
+	ID             uuid.UUID `gorm:"primaryKey"`
+	OrganisationID uuid.UUID
+	Organisation   Organisation `gorm:"foreignKey:OrganisationID"`
+	Name           string
+	Location       string
+	Secret         string
+	IsActive       bool
+	CreatedAt      time.Time
 }
 
 // type SensorSupportedTaskTypes struct {
