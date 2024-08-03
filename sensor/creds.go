@@ -16,7 +16,7 @@ type Creds struct {
 func (sc Creds) GetSensorEnvToken() (token string, err error) {
 	j, err := json.Marshal(sc)
 	if err != nil {
-		err = fmt.Errorf("getSensorEnvToken Marshal err:%v", err)
+		err = fmt.Errorf("getSensorEnvToken Marshal err: %v", err)
 		return
 	}
 	token = base64.StdEncoding.EncodeToString(j)

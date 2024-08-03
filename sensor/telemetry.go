@@ -42,7 +42,7 @@ type Network struct {
 func (ht HostTelemetry) SendToServer(ctx context.Context, wsConn net.Conn) (err error) {
 	// Check if the context is done
 	if ctx.Err() != nil {
-		err = fmt.Errorf("context done detected in SendToServer:%v", ctx.Err())
+		err = fmt.Errorf("context done detected in SendToServer: %v", ctx.Err())
 		return
 	}
 
