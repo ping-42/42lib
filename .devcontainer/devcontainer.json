@@ -139,7 +139,8 @@
     // Server address, by default is: wss://api.ping42.net
     "PING42_TELEMETRY_SERVER":"ws://localhost:8080",
     //
-    "ADMIN_API_JWT_SECRET":"fdsfsv!fdsfs!F!Aа1239"
+    "ADMIN_API_JWT_SECRET":"fdsfsv!fdsfs!F!Aа1239",
+    "GOOGLE_CLIENT_ID":"537878940617-g59al68c6s467ov8utt1jkcompevgriu.apps.googleusercontent.com"
   },
   "portsAttributes": {
     "5432": {

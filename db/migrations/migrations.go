@@ -179,11 +179,30 @@ func migrate(db *gorm.DB) error {
 		{
 			ID: "for-squash-4",
 			Migrate: func(tx *gorm.DB) error {
+
+				type Organization struct {
+					ID   uuid.UUID `gorm:"primaryKey"`
+					Name string
+				}
+				type LvUserGroup struct {
+					ID        uint64 `gorm:"primaryKey;autoIncrement"`
+					GroupName string
+				}
+				type User struct {
+					ID             uuid.UUID    `gorm:"primaryKey"`
+					OrganizationID uuid.UUID    //FK to Organization.id
+					Organization   Organization `gorm:"foreignKey:OrganizationID"`
+					WalletAddress  string       `gorm:"uniqueIndex"`
+					Email          string       `gorm:"uniqueIndex"`
+					UserGroupID    uint64       //FK to UserGroup.id
+					UserGroup      LvUserGroup  `gorm:"foreignKey:UserGroupID"`
+				}
+
 				err := tx.Migrator().CreateTable(
 					&models.LvUserGroup{},
 					&models.LvPermission{},
 					&models.Organization{},
-					&models.User{},
+					&User{},
 					&models.PermissionToUserGroup{},
 				)
 				if err != nil {
@@ -220,11 +239,7 @@ func migrate(db *gorm.DB) error {
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 1);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 2);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 3);
-					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 4);
-					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 1);
-					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 2);
-					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 3);
-					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 4);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 4);
 					`).Error
 				return err
 			},
@@ -274,6 +289,44 @@ func migrate(db *gorm.DB) error {
 				return tx.Exec(`
 				INSERT INTO users(id, wallet_address, user_group_id, organization_id) VALUES ('63e76fbd-77cf-4470-bcb0-25c72b09a504', '0xd694cfc8c66e34371eae8ebe03d54867e5c6cec4', 1, '10e76fbd-77cf-4470-bcb0-25c72b09a511');
 				UPDATE sensors SET organization_id = '10e76fbd-77cf-4470-bcb0-25c72b09a511', is_active = true, created_at = now() WHERE id='b9dc3d20-256b-4ac7-8cae-2f6dc962e183';`).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		})
+
+		migrations = append(migrations, &gormigrate.Migration{
+			ID: "for-squash-users-new-fields",
+			Migrate: func(tx *gorm.DB) error {
+				err := tx.Migrator().AddColumn(&models.User{}, "IsActive")
+				if err != nil {
+					return err
+				}
+				err = tx.Migrator().AddColumn(&models.User{}, "IsValidated")
+				if err != nil {
+					return err
+				}
+				err = tx.Migrator().AddColumn(&models.User{}, "CreatedAt")
+				if err != nil {
+					return err
+				}
+				err = tx.Migrator().AddColumn(&models.User{}, "LastLoginAt")
+				if err != nil {
+					return err
+				}
+				err = tx.Exec(`
+					-- add permissions to users group
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 1);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 2);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 3);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 4);
+					-- create new create_organization_user permission
+					INSERT INTO lv_permissions(id, permission) VALUES (5, 'create_organization_user');
+					-- assign the new new pemission to roots and admins
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 5);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 5);
+					`).Error
+				return err
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Rollback().Error

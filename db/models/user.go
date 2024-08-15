@@ -1,6 +1,10 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Organization struct {
 	ID   uuid.UUID `gorm:"primaryKey"`
@@ -11,10 +15,14 @@ type User struct {
 	ID             uuid.UUID    `gorm:"primaryKey"`
 	OrganizationID uuid.UUID    //FK to Organization.id
 	Organization   Organization `gorm:"foreignKey:OrganizationID"`
-	WalletAddress  string       `gorm:"uniqueIndex"`
-	Email          string       `gorm:"uniqueIndex"`
+	WalletAddress  *string      `gorm:"uniqueIndex"`
+	Email          *string      `gorm:"uniqueIndex"`
 	UserGroupID    uint64       //FK to UserGroup.id
 	UserGroup      LvUserGroup  `gorm:"foreignKey:UserGroupID"`
+	IsValidated    bool
+	IsActive       bool
+	CreatedAt      time.Time `gorm:"type:TIMESTAMPTZ;"`
+	LastLoginAt    time.Time `gorm:"type:TIMESTAMPTZ;"`
 }
 
 type LvUserGroup struct {
