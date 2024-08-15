@@ -121,7 +121,7 @@ func getDefaultNs() ([]DnsNameServer, error) {
 	ns := resolvconf.GetNameservers(f.Content, resolvconf.IPv4)
 	if len(ns) < 1 {
 		msg := "no default nameservers"
-		err := fmt.Errorf(msg)
+		err := fmt.Errorf("%v", msg)
 		dnsLogger.Error(msg)
 		return []DnsNameServer{}, err
 	}

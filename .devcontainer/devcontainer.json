@@ -2,10 +2,9 @@
 // https://containers.dev/
 {
   "name": "ping42-golang-infra",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 
-  // New Features-based devcontainer setup
+  // Features-based devcontainer setup
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
@@ -24,6 +23,9 @@
       "plugins": "ssh-agent gh vscode golang",
       "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-syntax-highlighting",
       "username": "vscode"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
     },
     "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
     "ghcr.io/guiyomh/features/golangci-lint:0": {
