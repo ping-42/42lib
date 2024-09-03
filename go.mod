@@ -3,7 +3,7 @@ module github.com/ping-42/42lib
 go 1.22
 
 require (
-	github.com/docker/docker v27.1.2+incompatible
+	github.com/docker/docker v27.2.0+incompatible
 	github.com/go-gormigrate/gormigrate/v2 v2.1.2
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gobwas/ws v1.4.0
