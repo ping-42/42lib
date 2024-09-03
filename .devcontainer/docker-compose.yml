@@ -25,6 +25,8 @@ services:
     container_name: redis
     hostname: redis
     restart: always
+    networks:
+      - default
     expose:
       - 6379
     ports:

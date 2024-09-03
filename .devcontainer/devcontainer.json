@@ -41,29 +41,18 @@
       "dockerDashComposeVersion": "v2"
     }
   },
-
-  // See here for devcontainer lifecycle docs
-  // https://containers.dev/implementors/json_reference/#_lifecycle-scripts
-  // Use 'postCreateCommand' to run commands after the container is created.
+  // Run post creation commands
   "postCreateCommand": ".devcontainer/create.sh",
-
-  // Update codespace and stuff on startup
   "postStartCommand": ".devcontainer/update.sh",
-
-  // NOTE: that sudo still works...
   "remoteUser": "vscode",
-  // "workspaceMount": "source=${localWorkspaceFolder}/42lib,target=/workspaces,type=bind,consistency=delegated",
-  // "workspaceFolder": "/workspaces",
+
   "mounts": [
     "type=volume,source=gh-auth-config,target=/home/vscode/.config/gh"
     // "type=volume,source=dev-workspace,target=/workspaces"
     //   "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached"
   ],
 
-  // Configure tool-specific properties.
   "customizations": {
-    // Configure codespace org permissions
-    // https://docs.github.com/en/codespaces/managing-your-codespaces/managing-repository-access-for-your-codespaces
     "codespaces": {
       "repositories": {
         "ping-42/42lib": {
@@ -103,15 +92,8 @@
           }
         }
       },
-      // Shut up the annoying message on bootup, courtesy of a permission bug - see update.sh
       "devcontainerChangedNotificationStyle": "none"
     },
-    // // Configure properties specific to VS Code.
-    // "containerEnv": {
-    //   //   "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
-    //   //   "GITHUB_USER": "${localEnv:GITHUB_USER}"
-    // },
-
     "vscode": {
       "extensions": [
         "golang.go",
@@ -139,10 +121,10 @@
     // SENSOR TOKEN - USED FOR DEVELOPMENT
     "PING42_SENSOR_TOKEN": "ewogICAiU2Vuc29ySWQiOiJiOWRjM2QyMC0yNTZiLTRhYzctOGNhZS0yZjZkYzk2MmUxODMiLAogICAiU2VjcmV0Ijoic2Vuc29yU2VjcmV0MTIzISIKfQ==",
     // Server address, by default is: wss://api.ping42.net
-    "PING42_TELEMETRY_SERVER":"ws://localhost:8080",
+    "PING42_TELEMETRY_SERVER": "ws://localhost:8080",
     //
-    "ADMIN_API_JWT_SECRET":"fdsfsv!fdsfs!F!Aа1239",
-    "GOOGLE_CLIENT_ID":"537878940617-g59al68c6s467ov8utt1jkcompevgriu.apps.googleusercontent.com"
+    "ADMIN_API_JWT_SECRET": "fdsfsv!fdsfs!F!Aа1239",
+    "GOOGLE_CLIENT_ID": "537878940617-g59al68c6s467ov8utt1jkcompevgriu.apps.googleusercontent.com"
   },
   "portsAttributes": {
     "5432": {
