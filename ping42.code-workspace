@@ -55,7 +55,7 @@
 				"type": "go",
 				"request": "launch",
 				"mode": "auto",
-				"program": "/workspaces/scheduler/scheduler"
+				"program": "/workspaces/scheduler/"
 			},
 			{
 				"name": "AdminApi",
@@ -90,6 +90,7 @@
 			"editor.defaultFormatter": "golang.go"
 		},
 		"git.enableCommitSigning": true,
+		"remote.autoForwardPortsFallback": 0,
 	},
 	"extensions": {
 		"recommendations": [
