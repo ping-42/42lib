@@ -279,6 +279,9 @@ func migrate(db *gorm.DB) error {
 				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 5);
 				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 5);
 				`).Error
+				if err != nil {
+					return err
+				}
 
 				err = tx.Migrator().CreateTable(
 					&models.Subscription{},
