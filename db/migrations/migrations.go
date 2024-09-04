@@ -41,16 +41,16 @@ func migrate(db *gorm.DB) error {
 			ID: "initial",
 			Migrate: func(tx *gorm.DB) error {
 				type Task struct {
-					ID                   uuid.UUID                 `gorm:"type:uuid;primary_key;" json:"id"`
-					TaskTypeID           uint64                    //FK to TaskType.id
-					TaskType             models.LvTaskType         `gorm:"foreignKey:TaskTypeID"`
-					TaskStatusID         uint8                     //FK to TaskType.id
-					TaskStatus           models.LvTaskStatus       `gorm:"foreignKey:TaskStatusID"`
-					SensorID             uuid.UUID                 //FK to Sensor.id
-					Sensor               models.Sensor             `gorm:"foreignKey:SensorID"`
-					ClientSubscriptionID uint64                    //FK to ClientSubscription.id
-					ClientSubscription   models.ClientSubscription `gorm:"foreignKey:ClientSubscriptionID"`
-					Opts                 []byte                    `gorm:"type:jsonb"`
+					ID           uuid.UUID           `gorm:"type:uuid;primary_key;" json:"id"`
+					TaskTypeID   uint64              //FK to TaskType.id
+					TaskType     models.LvTaskType   `gorm:"foreignKey:TaskTypeID"`
+					TaskStatusID uint8               //FK to TaskType.id
+					TaskStatus   models.LvTaskStatus `gorm:"foreignKey:TaskStatusID"`
+					SensorID     uuid.UUID           //FK to Sensor.id
+					Sensor       models.Sensor       `gorm:"foreignKey:SensorID"`
+					// ClientSubscriptionID uint64                    //FK to ClientSubscription.id //deprecated
+					// ClientSubscription   models.ClientSubscription `gorm:"foreignKey:ClientSubscriptionID"` //deprecated
+					Opts []byte `gorm:"type:jsonb"`
 				}
 				type Sensor struct {
 					ID       uuid.UUID `gorm:"primaryKey"`
@@ -63,8 +63,8 @@ func migrate(db *gorm.DB) error {
 					&models.LvTaskType{},
 					&models.LvTaskStatus{},
 					&models.LvProtocol{},
-					&models.Client{},
-					&models.ClientSubscription{},
+					// &models.Client{}, //deprecated
+					// &models.ClientSubscription{}, //deprecated
 					&Task{},
 					&models.TsHostRuntimeStat{},
 					&models.TsDnsResult{},
@@ -242,6 +242,21 @@ func migrate(db *gorm.DB) error {
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 4);
 					`).Error
 				return err
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		},
+		{
+			ID: "for-squash-5",
+			Migrate: func(tx *gorm.DB) error {
+				err := tx.Migrator().CreateTable(
+					&models.Subscription{},
+				)
+				if err != nil {
+					return err
+				}
+				return tx.Migrator().AddColumn(&models.Task{}, "SubscriptionID")
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Rollback().Error
