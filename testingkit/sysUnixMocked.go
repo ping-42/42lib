@@ -17,7 +17,7 @@ func (m MockedSysUnix) Socket(domain int, typ int, proto int) (fd int, err error
 	if m.SocketFunc != nil {
 		return m.SocketFunc(domain, typ, proto)
 	}
-	return 0, nil
+	return 1, nil
 }
 func (m MockedSysUnix) Close(fd int) (err error) {
 	if m.CloseFunc != nil {
@@ -53,7 +53,7 @@ func (m MockedSysUnix) Recvfrom(fd int, p []byte, flags int) (n int, from unix.S
 	if m.RecvfromFunc != nil {
 		return m.RecvfromFunc(fd, p, flags)
 	}
-	return 0, nil, nil
+	return len(p), &unix.SockaddrInet4{}, nil
 }
 func (m MockedSysUnix) NsecToTimeval(nsec int64) unix.Timeval {
 	if m.NsecToTimevalFunc != nil {
