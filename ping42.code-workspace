@@ -23,6 +23,10 @@
 		{
 			"name": "AdminApi",
 			"path": "/workspaces/admin-api"
+		},
+		{
+			"name": "Protocol",
+			"path": "/workspaces/protocol"
 		}
 	],
 	"launch": {

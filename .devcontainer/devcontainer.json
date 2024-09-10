@@ -34,7 +34,7 @@
     "ghcr.io/devcontainers-contrib/features/gh-cli:1": {},
     // Ubuntu apt-get packages to install
     "ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {
-      "packages": ["iputils-ping", "postgresql-client"]
+      "packages": ["iputils-ping", "postgresql-client", "software-properties-common"]
     },
     // Docker Compose and friends
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
@@ -90,6 +90,12 @@
             "contents": "write",
             "workflows": "write"
           }
+        },
+        "ping-42/protocol": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
         }
       },
       "devcontainerChangedNotificationStyle": "none"
@@ -135,6 +141,9 @@
     },
     "8081": {
       "label": "Admin API"
+    },
+    "8545": {
+      "label": "Hardhat Node"
     }
   }
 }

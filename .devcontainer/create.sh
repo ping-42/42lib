@@ -22,3 +22,7 @@ curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -
 echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
 sudo apt-get update -qq
 sudo apt-get install --no-install-recommends goreleaser
+
+# Install Geth and friends
+sudo add-apt-repository -y ppa:ethereum/ethereum
+sudo apt-get install ethereum

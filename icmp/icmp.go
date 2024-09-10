@@ -40,7 +40,6 @@ func NewTaskFromBytes(msg []byte) (t task, err error) {
 	}
 
 	// set here default opts if we need some
-
 	return
 }
 
