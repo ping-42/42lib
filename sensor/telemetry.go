@@ -55,7 +55,7 @@ func (ht HostTelemetry) SendToServer(ctx context.Context, wsConn net.Conn) (err 
 	// Send results to the server
 	err = wsutil.WriteClientText(wsConn, r)
 	if err != nil {
-		err = fmt.Errorf("failed to send telemetry response to server: %v", err)
+		err = fmt.Errorf("connection lost, failed to send host telemetry response to server: %v", err)
 		return
 	}
 	return
