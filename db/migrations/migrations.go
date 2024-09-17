@@ -295,6 +295,19 @@ func migrate(db *gorm.DB) error {
 				return tx.Rollback().Error
 			},
 		},
+		{
+			ID: "stats-indexes-01",
+			Migrate: func(tx *gorm.DB) error {
+				// traceroute indices
+				return tx.Exec(`
+					-- create some much needed indexes
+                    CREATE INDEX idx_runtime_sensor_id ON ts_traceroute_results (sensor_id);
+					`).Error
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		},
 	}
 
 	// dev demo data
