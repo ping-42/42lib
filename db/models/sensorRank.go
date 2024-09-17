@@ -9,7 +9,7 @@ import (
 type SensorRank struct {
 	ID uint64 `gorm:"primaryKey;autoIncrement"`
 
-	SensorID uuid.UUID //FK to Client.id
+	SensorID uuid.UUID `gorm:"type:uuid"` //FK to Client.id
 	Sensor   Sensor    `gorm:"foreignKey:SensorID"`
 
 	Rank             float64

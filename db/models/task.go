@@ -13,7 +13,7 @@ type Task struct {
 	TaskType       LvTaskType   `gorm:"foreignKey:TaskTypeID"`
 	TaskStatusID   uint8        //FK to TaskType.id
 	TaskStatus     LvTaskStatus `gorm:"foreignKey:TaskStatusID"`
-	SensorID       uuid.UUID    //FK to Sensor.id
+	SensorID       uuid.UUID    `gorm:"type:uuid"` //FK to Sensor.id
 	Sensor         Sensor       `gorm:"foreignKey:SensorID"`
 	SubscriptionID uint64       //FK to Subscription.id
 	Subscription   Subscription `gorm:"foreignKey:SubscriptionID"`

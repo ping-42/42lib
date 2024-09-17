@@ -9,7 +9,7 @@ import (
 type Subscription struct {
 	ID uint64 `gorm:"primaryKey;autoIncrement"`
 
-	OrganizationID uuid.UUID    //FK to Client.id
+	OrganizationID uuid.UUID    `gorm:"type:uuid"` //FK to Client.id
 	Organization   Organization `gorm:"foreignKey:OrganizationID"`
 
 	TaskTypeID uint64     //FK to TaskType.id

@@ -7,12 +7,12 @@ import (
 )
 
 type Organization struct {
-	ID   uuid.UUID `gorm:"primaryKey"`
+	ID   uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Name string
 }
 
 type User struct {
-	ID             uuid.UUID    `gorm:"primaryKey"`
+	ID             uuid.UUID    `gorm:"type:uuid;primaryKey"`
 	OrganizationID uuid.UUID    //FK to Organization.id
 	Organization   Organization `gorm:"foreignKey:OrganizationID"`
 	WalletAddress  *string      `gorm:"uniqueIndex"`
