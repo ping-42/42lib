@@ -83,17 +83,24 @@ func migrate(db *gorm.DB) error {
 				// indices
 				err = tx.Exec(`
                     CREATE INDEX idx_runtime_sensor_time ON ts_host_runtime_stats (sensor_id, time DESC);
+                    CREATE INDEX idx_runtime_sensor_id   ON ts_host_runtime_stats (sensor_id);
                     --
                     CREATE INDEX idx_dns_results_sensor_time ON ts_dns_results (sensor_id, time DESC);
+                    CREATE INDEX idx_dns_results_sensor_id   ON ts_dns_results (sensor_id);
                     CREATE INDEX idx_dns_results_answer_sensor_time ON ts_dns_results_answer (sensor_id, time DESC);
+                    CREATE INDEX idx_dns_results_answer_sensor_id   ON ts_dns_results_answer (sensor_id);
                     --
                     CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
+                    CREATE INDEX idx_http_results_sensor_id   ON ts_http_results (sensor_id);
                     --
                     CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
+                    CREATE INDEX idx_icmp_results_sensor_id   ON ts_icmp_results (sensor_id);
 					--
-					CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
+                    CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
+                    CREATE INDEX idx_traceroute_results_sensor_id   ON ts_traceroute_results (sensor_id);
                     CREATE INDEX idx_traceroute_results_hop_sensor_time ON ts_traceroute_results_hop (sensor_id, time DESC);
-                    CREATE INDEX idx_traceroute_results_task ON ts_traceroute_results (task_id);
+                    CREATE INDEX idx_traceroute_results_hop_sensor_id   ON ts_traceroute_results_hop (sensor_id);
+                    CREATE INDEX idx_traceroute_results_task     ON ts_traceroute_results     (task_id);
                     CREATE INDEX idx_traceroute_results_hop_task ON ts_traceroute_results_hop (task_id);
 					`).Error
 				if err != nil {
