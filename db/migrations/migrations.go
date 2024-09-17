@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"github.com/go-gormigrate/gormigrate/v2"
-	"github.com/google/uuid"
 	"github.com/ping-42/42lib/db/models"
 	"gorm.io/gorm"
 )
@@ -39,32 +38,14 @@ func migrate(db *gorm.DB) error {
 			// IDs must be unique
 			ID: "initial",
 			Migrate: func(tx *gorm.DB) error {
-				type Task struct {
-					ID           uuid.UUID           `gorm:"type:uuid;primary_key;" json:"id"`
-					TaskTypeID   uint64              //FK to TaskType.id
-					TaskType     models.LvTaskType   `gorm:"foreignKey:TaskTypeID"`
-					TaskStatusID uint8               //FK to TaskType.id
-					TaskStatus   models.LvTaskStatus `gorm:"foreignKey:TaskStatusID"`
-					SensorID     uuid.UUID           //FK to Sensor.id
-					Sensor       models.Sensor       `gorm:"foreignKey:SensorID"`
-					// ClientSubscriptionID uint64                    //FK to ClientSubscription.id //deprecated
-					// ClientSubscription   models.ClientSubscription `gorm:"foreignKey:ClientSubscriptionID"` //deprecated
-					Opts []byte `gorm:"type:jsonb"`
-				}
-				type Sensor struct {
-					ID       uuid.UUID `gorm:"primaryKey"`
-					Name     string
-					Location string
-					Secret   string
-				}
 				err := tx.Migrator().CreateTable(
-					&Sensor{},
+					&models.Organization{},
+					&models.Sensor{},
 					&models.LvTaskType{},
 					&models.LvTaskStatus{},
 					&models.LvProtocol{},
-					// &models.Client{}, //deprecated
-					// &models.ClientSubscription{}, //deprecated
-					&Task{},
+					&models.Subscription{},
+					&models.Task{},
 					&models.TsHostRuntimeStat{},
 					&models.TsDnsResult{},
 					&models.TsDnsResultAnswer{},
@@ -72,6 +53,11 @@ func migrate(db *gorm.DB) error {
 					&models.TsIcmpResult{},
 					&models.TsTracerouteResultHop{},
 					&models.TsTracerouteResult{},
+					&models.SensorRank{},
+					&models.LvUserGroup{},
+					&models.LvPermission{},
+					&models.User{},
+					&models.PermissionToUserGroup{},
 				)
 				if err != nil {
 					return err
@@ -97,15 +83,26 @@ func migrate(db *gorm.DB) error {
 				// indices
 				err = tx.Exec(`
                     CREATE INDEX idx_runtime_sensor_time ON ts_host_runtime_stats (sensor_id, time DESC);
+                    CREATE INDEX idx_runtime_sensor_id   ON ts_host_runtime_stats (sensor_id);
                     --
                     CREATE INDEX idx_dns_results_sensor_time ON ts_dns_results (sensor_id, time DESC);
+                    CREATE INDEX idx_dns_results_sensor_id   ON ts_dns_results (sensor_id);
                     CREATE INDEX idx_dns_results_answer_sensor_time ON ts_dns_results_answer (sensor_id, time DESC);
-                    -- CREATE INDEX idx_dns_results_task ON ts_dns_results (task_id);
-                    -- CREATE INDEX idx_dns_results_answer_task ON ts_dns_results_answer (task_id);
+                    CREATE INDEX idx_dns_results_answer_sensor_id   ON ts_dns_results_answer (sensor_id);
                     --
                     CREATE INDEX idx_http_results_sensor_time ON ts_http_results (sensor_id, time DESC);
+                    CREATE INDEX idx_http_results_sensor_id   ON ts_http_results (sensor_id);
                     --
-                    CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);`).Error
+                    CREATE INDEX idx_icmp_results_sensor_time ON ts_icmp_results (sensor_id, time DESC);
+                    CREATE INDEX idx_icmp_results_sensor_id   ON ts_icmp_results (sensor_id);
+					--
+                    CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
+                    CREATE INDEX idx_traceroute_results_sensor_id   ON ts_traceroute_results (sensor_id);
+                    CREATE INDEX idx_traceroute_results_hop_sensor_time ON ts_traceroute_results_hop (sensor_id, time DESC);
+                    CREATE INDEX idx_traceroute_results_hop_sensor_id   ON ts_traceroute_results_hop (sensor_id);
+                    CREATE INDEX idx_traceroute_results_task     ON ts_traceroute_results     (task_id);
+                    CREATE INDEX idx_traceroute_results_hop_task ON ts_traceroute_results_hop (task_id);
+					`).Error
 				if err != nil {
 					return err
 				}
@@ -115,20 +112,12 @@ func migrate(db *gorm.DB) error {
                     INSERT INTO lv_task_types(id, type) VALUES (1, 'DNS_TASK');
                     INSERT INTO lv_task_types(id, type) VALUES (2, 'ICMP_TASK');
                     INSERT INTO lv_task_types(id, type) VALUES (3, 'HTTP_TASK');
-                    INSERT INTO lv_task_types(id, type) VALUES (4, 'TRACEROUTE_TASK');`).Error
-				if err != nil {
-					return err
-				}
-
-				err = tx.Exec(`
-                    INSERT INTO lv_protocols(id, type) VALUES (1, 'TCP');
-                    INSERT INTO lv_protocols(id, type) VALUES (2, 'UDP');`).Error
-				if err != nil {
-					return err
-				}
-
-				err = tx.Exec(`
-                    INSERT INTO lv_task_statuses(id, status) VALUES (1, 'INITIATED_BY_SCHEDULER');
+                    INSERT INTO lv_task_types(id, type) VALUES (4, 'TRACEROUTE_TASK');
+					--
+					INSERT INTO lv_protocols(id, type) VALUES (1, 'TCP');
+                    INSERT INTO lv_protocols(id, type) VALUES (2, 'UDP');
+					--
+					INSERT INTO lv_task_statuses(id, status) VALUES (1, 'INITIATED_BY_SCHEDULER');
                     INSERT INTO lv_task_statuses(id, status) VALUES (2, 'PUBLISHED_TO_REDIS_BY_SCHEDULER');
                     INSERT INTO lv_task_statuses(id, status) VALUES (3, 'RECEIVED_BY_SERVER');
                     INSERT INTO lv_task_statuses(id, status) VALUES (4, 'SENT_TO_SENSOR_BY_SERVER');
@@ -136,92 +125,8 @@ func migrate(db *gorm.DB) error {
                     INSERT INTO lv_task_statuses(id, status) VALUES (6, 'RESULTS_SENT_TO_SERVER_BY_SENSOR');
                     INSERT INTO lv_task_statuses(id, status) VALUES (7, 'RESULTS_RECEIVED_BY_SERVER');
                     INSERT INTO lv_task_statuses(id, status) VALUES (8, 'DONE');
-                    INSERT INTO lv_task_statuses(id, status) VALUES (9, 'ERROR');`).Error
-				return err
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.Rollback().Error
-			},
-		},
-		{
-			ID: "for-squash-1",
-			Migrate: func(tx *gorm.DB) error {
-				return tx.Migrator().CreateTable(&models.SensorRank{})
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.Rollback().Error
-			},
-		},
-		{
-			ID: "for-squash-2",
-			Migrate: func(tx *gorm.DB) error {
-				return tx.Migrator().AddColumn(&models.Task{}, "CreatedAt")
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.Rollback().Error
-			},
-		},
-		{
-			ID: "for-squash-3",
-			Migrate: func(tx *gorm.DB) error {
-				// traceroute indices
-				return tx.Exec(`
-                    CREATE INDEX idx_traceroute_results_sensor_time ON ts_traceroute_results (sensor_id, time DESC);
-                    CREATE INDEX idx_traceroute_results_hop_sensor_time ON ts_traceroute_results_hop (sensor_id, time DESC);
-                    CREATE INDEX idx_traceroute_results_task ON ts_traceroute_results (task_id);
-                    CREATE INDEX idx_traceroute_results_hop_task ON ts_traceroute_results_hop (task_id);`).Error
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.Rollback().Error
-			},
-		},
-		{
-			ID: "for-squash-4",
-			Migrate: func(tx *gorm.DB) error {
-
-				type Organization struct {
-					ID   uuid.UUID `gorm:"primaryKey"`
-					Name string
-				}
-				type LvUserGroup struct {
-					ID        uint64 `gorm:"primaryKey;autoIncrement"`
-					GroupName string
-				}
-				type User struct {
-					ID             uuid.UUID    `gorm:"primaryKey"`
-					OrganizationID uuid.UUID    //FK to Organization.id
-					Organization   Organization `gorm:"foreignKey:OrganizationID"`
-					WalletAddress  string       `gorm:"uniqueIndex"`
-					Email          string       `gorm:"uniqueIndex"`
-					UserGroupID    uint64       //FK to UserGroup.id
-					UserGroup      LvUserGroup  `gorm:"foreignKey:UserGroupID"`
-				}
-
-				err := tx.Migrator().CreateTable(
-					&models.LvUserGroup{},
-					&models.LvPermission{},
-					&models.Organization{},
-					&User{},
-					&models.PermissionToUserGroup{},
-				)
-				if err != nil {
-					return err
-				}
-
-				err = tx.Migrator().AddColumn(&models.Sensor{}, "OrganizationID")
-				if err != nil {
-					return err
-				}
-				err = tx.Migrator().AddColumn(&models.Sensor{}, "IsActive")
-				if err != nil {
-					return err
-				}
-				err = tx.Migrator().AddColumn(&models.Sensor{}, "CreatedAt")
-				if err != nil {
-					return err
-				}
-
-				err = tx.Exec(`
+                    INSERT INTO lv_task_statuses(id, status) VALUES (9, 'ERROR');
+					--
 					INSERT INTO lv_user_groups(id, group_name) VALUES (1, 'root');
 					INSERT INTO lv_user_groups(id, group_name) VALUES (2, 'admin');
 					INSERT INTO lv_user_groups(id, group_name) VALUES (3, 'user');
@@ -230,66 +135,24 @@ func migrate(db *gorm.DB) error {
 					INSERT INTO lv_permissions(id, permission) VALUES (2, 'create');
 					INSERT INTO lv_permissions(id, permission) VALUES (3, 'update');
 					INSERT INTO lv_permissions(id, permission) VALUES (4, 'delete');
+					INSERT INTO lv_permissions(id, permission) VALUES (5, 'create_organization_user');
 					--
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 1);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 2);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 3);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 4);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 5);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 1);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 2);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 3);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 4);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 5);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 1);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 2);
+					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 3);
 					`).Error
+
 				return err
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.Rollback().Error
-			},
-		},
-		{
-			ID: "for-squash-5",
-			Migrate: func(tx *gorm.DB) error {
-
-				err := tx.Migrator().AddColumn(&models.User{}, "IsActive")
-				if err != nil {
-					return err
-				}
-				err = tx.Migrator().AddColumn(&models.User{}, "IsValidated")
-				if err != nil {
-					return err
-				}
-				err = tx.Migrator().AddColumn(&models.User{}, "CreatedAt")
-				if err != nil {
-					return err
-				}
-				err = tx.Migrator().AddColumn(&models.User{}, "LastLoginAt")
-				if err != nil {
-					return err
-				}
-
-				err = tx.Exec(`
-				-- add permissions to users group
-				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 1);
-				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 2);
-				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 3);
-				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 4);
-				-- create new create_organization_user permission
-				INSERT INTO lv_permissions(id, permission) VALUES (5, 'create_organization_user');
-				-- assign the new new pemission to roots and admins
-				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (1, 5);
-				INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (2, 5);
-				`).Error
-				if err != nil {
-					return err
-				}
-
-				err = tx.Migrator().CreateTable(
-					&models.Subscription{},
-				)
-				if err != nil {
-					return err
-				}
-				return tx.Migrator().AddColumn(&models.Task{}, "SubscriptionID")
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Rollback().Error

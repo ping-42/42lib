@@ -25,4 +25,4 @@ sudo apt-get install --no-install-recommends goreleaser
 
 # Install Geth and friends
 sudo add-apt-repository -y ppa:ethereum/ethereum
-sudo apt-get install ethereum
+sudo apt-get install -y ethereum

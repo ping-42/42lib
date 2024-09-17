@@ -7,8 +7,8 @@ import (
 )
 
 type Sensor struct {
-	ID             uuid.UUID `gorm:"primaryKey"`
-	OrganizationID uuid.UUID
+	ID             uuid.UUID    `gorm:"type:uuid;primaryKey"`
+	OrganizationID uuid.UUID    `gorm:"type:uuid"`
 	Organization   Organization `gorm:"foreignKey:OrganizationID"`
 	Name           string
 	Location       string
@@ -18,7 +18,7 @@ type Sensor struct {
 }
 
 // type SensorSupportedTaskTypes struct {
-// 	SensorID   uuid.UUID  //FK to Sensor.id
+// 	SensorID   uuid.UUID  `gorm:"type:uuid"` //FK to Sensor.id
 // 	Sensor     Sensor     `gorm:"foreignKey:SensorID"`
 // 	TaskTypeID uint64     //FK to TaskType.id
 // 	TaskType   LvTaskType `gorm:"foreignKey:TaskTypeID"`
