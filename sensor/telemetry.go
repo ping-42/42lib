@@ -34,9 +34,11 @@ type Memory struct {
 }
 
 type Network struct {
-	Name      string
-	BytesSent uint64
-	BytesRecv uint64
+	Name        string
+	BytesSent   uint64
+	BytesRecv   uint64
+	PacketsSent uint64
+	PacketsRecv uint64
 }
 
 func (ht HostTelemetry) SendToServer(ctx context.Context, wsConn net.Conn) (err error) {
