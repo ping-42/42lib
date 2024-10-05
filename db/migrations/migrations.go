@@ -47,8 +47,6 @@ func migrate(db *gorm.DB) error {
 					&models.Subscription{},
 					&models.Task{},
 					&models.TsHostRuntimeStat{},
-					&models.TsHostNetworkStat{},
-					&models.TsNetworkInterfaceStat{},
 					&models.TsDnsResult{},
 					&models.TsDnsResultAnswer{},
 					&models.TsHttpResult{},
@@ -68,7 +66,6 @@ func migrate(db *gorm.DB) error {
 				// hypertables for timeseries data
 				err = tx.Exec(`
                     SELECT create_hypertable('ts_host_runtime_stats', by_range('time'));
-					SELECT create_hypertable('ts_host_network_stats', 'time');
                     --
                     SELECT create_hypertable('ts_dns_results', by_range('time'));
                     SELECT create_hypertable('ts_dns_results_answer', by_range('time'));
@@ -159,6 +156,41 @@ func migrate(db *gorm.DB) error {
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 2);
 					INSERT INTO permission_to_user_groups(user_group_id, permission_id) VALUES (3, 3);
 					`).Error
+
+				return err
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Rollback().Error
+			},
+		},
+
+		{
+			ID: "network-stat-tables",
+			Migrate: func(tx *gorm.DB) error {
+				err := tx.Migrator().CreateTable(
+					&models.TsHostNetworkStat{},
+					&models.TsNetworkInterfaceStat{},
+				)
+				if err != nil {
+					return err
+				}
+
+				// hypertables for timeseries data
+				err = tx.Exec(`
+					SELECT create_hypertable('ts_host_network_stats', 'time');`).Error
+				if err != nil {
+					return err
+				}
+
+				// indices
+				err = tx.Exec(`
+                    CREATE INDEX idx_network_stats_sensor_time ON ts_host_network_stats (sensor_id, time DESC);
+                    CREATE INDEX idx_network_stats_sensor_id   ON ts_host_network_stats (sensor_id);
+					CREATE INDEX idx_interface_stats_network_id ON ts_network_interface_stats (network_stat_id);
+					`).Error
+				if err != nil {
+					return err
+				}
 
 				return err
 			},
