@@ -72,9 +72,9 @@
 				"name": "AdminUi",
 				"type": "node",
 				"request": "launch",
-				"program": "/workspaces/admin-ui/node_modules/.bin/react-scripts",
-				"args": ["start"],
-				"runtimeArgs": ["run-script"],
+				"program": "/workspaces/admin-ui/node_modules/.bin/vite",
+				"args": ["dev"],
+				//"runtimeArgs": ["run-script"],
 				"cwd": "/workspaces/admin-ui",
 				"console": "integratedTerminal",
 				"internalConsoleOptions": "neverOpen"
