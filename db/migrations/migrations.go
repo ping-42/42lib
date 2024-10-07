@@ -102,11 +102,6 @@ func migrate(db *gorm.DB) error {
                     CREATE INDEX idx_traceroute_results_hop_sensor_id   ON ts_traceroute_results_hop (sensor_id);
                     CREATE INDEX idx_traceroute_results_task     ON ts_traceroute_results     (task_id);
                     CREATE INDEX idx_traceroute_results_hop_task ON ts_traceroute_results_hop (task_id);
-					--
-                    CREATE INDEX idx_network_stats_sensor_time ON ts_host_network_stats (sensor_id, time DESC);
-                    CREATE INDEX idx_network_stats_sensor_id   ON ts_host_network_stats (sensor_id);
-					CREATE INDEX idx_interface_stats_network_id ON ts_network_interface_stats (network_stat_id);
-
 					`).Error
 				if err != nil {
 					return err
@@ -177,7 +172,9 @@ func migrate(db *gorm.DB) error {
 
 				// hypertables for timeseries data
 				err = tx.Exec(`
-					SELECT create_hypertable('ts_host_network_stats', 'time');`).Error
+					SELECT create_hypertable('ts_host_network_stats', by_range('time'));
+					SELECT create_hypertable('ts_network_interface_stats', by_range('time'));
+					`).Error
 				if err != nil {
 					return err
 				}
