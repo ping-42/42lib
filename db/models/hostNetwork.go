@@ -12,6 +12,7 @@ type TsHostNetworkStat struct {
 }
 
 type TsNetworkInterfaceStat struct {
+	Time          time.Time `gorm:"type:TIMESTAMPTZ;"`
 	NetworkStatID uuid.UUID `gorm:"type:uuid;"`
 	InterfaceName string
 	BytesSent     uint64
