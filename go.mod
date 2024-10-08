@@ -1,8 +1,6 @@
 module github.com/ping-42/42lib
 
-go 1.22.0
-
-toolchain go1.22.7
+go 1.23
 
 require (
 	github.com/docker/docker v27.3.1+incompatible
