@@ -23,8 +23,6 @@ type TsHostRuntimeStat struct {
 	MemUsed        uint64
 	MemFree        uint64
 	MemUsedPercent float64
-	//
-	Network string // TODO: use or remove
 }
 
 // Rank implements the Ranker interface for the runtime statistics
