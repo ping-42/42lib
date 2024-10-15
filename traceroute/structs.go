@@ -33,7 +33,6 @@ type Opts struct {
 	Packet        []byte
 	TTL           int `json:"Ttl"`
 	Retries       int `json:"Retries"`
-	// NetCapRaw     bool `json:"NetCapRaw"`
 }
 
 // SysUnix is an interface for interacting with low-level system.
@@ -53,10 +52,12 @@ func (t task) GetId() uuid.UUID {
 	return t.Task.Id
 }
 
+// GetSensorId gets the id of the sensor, as received by the server
 func (t task) GetSensorId() uuid.UUID {
 	return t.Task.SensorId
 }
 
+// GetName gets the name of the task, as received by the server
 func (t task) GetName() sensor.TaskName {
 	return TaskName
 }
@@ -77,8 +78,8 @@ type Result struct {
 	Hops              []Hop
 }
 
-// SysUnixReal will be used for the real socket operation methods
-// should these methods be defined in structs.go?
+// SysUnixReal will be used for the actual socket operation
+// each method returns a call to "golang.org/x/sys/unix"
 type SysUnixReal struct{}
 
 func (s SysUnixReal) Socket(domain int, typ int, proto int) (fd int, err error) {

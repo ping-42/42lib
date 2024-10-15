@@ -38,6 +38,7 @@ func NewTaskFromBytes(msg []byte) (t task, err error) {
 		return
 	}
 
+	// assign the actual socket operation methods
 	t.SysUnix = &SysUnixReal{}
 
 	return t, nil
@@ -57,6 +58,7 @@ func NewTaskFromModel(t models.Task) (tRes task, err error) {
 		return
 	}
 
+	// assign the actual socket operation methods
 	tRes.SysUnix = &SysUnixReal{}
 
 	return tRes, nil
@@ -120,7 +122,7 @@ func (t *task) runHop() (hop Hop, err error) {
 			loggerTraceroute.Error("error parsing message", err)
 		}
 
-		// // do we need the header??
+		// TODO do we need the header??
 		// // parse the header
 		// parsedHeader, err := icmp.ParseIPv4Header(t.Packet)
 		// if err != nil {
