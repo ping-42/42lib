@@ -8,6 +8,7 @@ This is the codebase of the 42 library and where the majority of infrastructure 
     - [Option 2 - Local Image](#option-2---local-image)
   - [Further Notes](#further-notes)
     - [Calculating socket RTT](#calculating-socket-rtt)
+  - [Hacking with a dedicated VSCode](#hacking-with-a-dedicated-vscode)
   - [Debugging Raw Sockets in VS Code](#debugging-raw-sockets-in-vs-code)
 
 ## Codespace Configuration
@@ -55,6 +56,16 @@ Calculating RTT of client-server communication is possible on several levels/
 First, for TCP connections, Linux maintains a list of kernel counters that [measure TCP rtt](https://github.com/torvalds/linux/blob/master/include/uapi/linux/tcp.h#L244) for every active TCP connection.
 This effectively limits the operating system compatibility of our application [to Linux](https://stackoverflow.com/questions/71787548/how-to-measure-rtt-latency-through-tcp-clients-created-in-golang-from-a-tcp-se), 
 but allows us to [reduce the hackiness](https://linuxgazette.net/136/pfeiffer.html) of sending various socket commands to generate a packet between the client and the server so we can measu
+
+## Hacking with a dedicated VSCode
+
+In order to get a seperate VSCode running specifically for the project, one can start it with an alternative home folder like so:
+
+```bash
+cd code/ping-42
+gh repo clone ping-42/42lib
+code 42lib --user-data-dir=$HOME/code/ping-42/.vscode
+```
 
 ## Debugging Raw Sockets in VS Code
 To debug the traceroute package and others that require raw socket operations, you can run VS Code with root privileges (preferably within a virtual environment to minimize security risks). Use the following on Linux:
