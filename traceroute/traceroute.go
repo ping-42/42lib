@@ -9,7 +9,6 @@ import (
 
 	"github.com/ping-42/42lib/db/models"
 	"github.com/ping-42/42lib/logger"
-	"github.com/ping-42/42lib/testingkit"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/sys/unix"
@@ -39,11 +38,8 @@ func NewTaskFromBytes(msg []byte) (t task, err error) {
 		return
 	}
 
-	if t.Opts.NetCapRaw {
-		t.SysUnix = &SysUnixReal{}
-	} else {
-		t.SysUnix = testingkit.MockedSysUnix{}
-	}
+	t.SysUnix = &SysUnixReal{}
+
 	return t, nil
 }
 
@@ -55,14 +51,15 @@ func NewTaskFromModel(t models.Task) (tRes task, err error) {
 	tRes.Name = TaskName
 
 	// build the opts
-	var o = Opts{}
-	err = json.Unmarshal(t.Opts, &o)
+	err = json.Unmarshal(t.Opts, &tRes.Opts)
 	if err != nil {
 		err = fmt.Errorf("traceroute NewTaskFromModel Unmarshal Opts err:%v", err)
 		return
 	}
-	tRes.Opts = o
-	return
+
+	tRes.SysUnix = &SysUnixReal{}
+
+	return tRes, nil
 }
 
 // run is the entry point for the traceroute task
@@ -86,64 +83,6 @@ func (t task) Run(ctx context.Context) ([]byte, error) {
 	}
 	return resJson, nil
 }
-
-// SysUnixReal will be used for the real socket operation methods
-// should these methods be defined in structs.go?
-type SysUnixReal struct{}
-
-func (s SysUnixReal) Socket(domain int, typ int, proto int) (fd int, err error) {
-	return unix.Socket(domain, typ, proto)
-}
-
-func (s SysUnixReal) Close(fd int) (err error) {
-	return unix.Close(fd)
-}
-
-func (s SysUnixReal) Bind(fd int, sa unix.Sockaddr) (err error) {
-	return unix.Bind(fd, sa)
-}
-
-func (s SysUnixReal) SetsockoptInt(fd int, level int, opt int, value int) error {
-	return unix.SetsockoptInt(fd, level, opt, value)
-}
-
-func (s SysUnixReal) SetsockoptTimeval(fd int, level int, opt int, tv *unix.Timeval) error {
-	return unix.SetsockoptTimeval(fd, level, opt, tv)
-}
-
-func (s SysUnixReal) Sendto(fd int, p []byte, flags int, to unix.Sockaddr) (err error) {
-	return unix.Sendto(fd, p, flags, to)
-}
-
-func (s SysUnixReal) Recvfrom(fd int, p []byte, flags int) (n int, from unix.Sockaddr, err error) {
-	return unix.Recvfrom(fd, p, flags)
-}
-
-func (s SysUnixReal) NsecToTimeval(nsec int64) unix.Timeval {
-	return unix.NsecToTimeval(nsec)
-}
-
-// // socketAddr return the first non-loopback address as a 4 byte IP address. This address
-// // is used for sending packets out.
-// func (t task) socketAddr() (addr [4]byte, err error) {
-// 	// get the a list of the system's addresses
-// 	addrs, err := net.InterfaceAddrs()
-// 	if err != nil {
-// 		loggerTraceroute.Error("error retreiving addresses", err)
-// 		return
-// 	}
-// 	// look for an ipv4 address that will be used to send packets
-// 	for _, a := range addrs {
-// 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-// 			if len(ipnet.IP.To4()) == net.IPv4len {
-// 				copy(addr[:], ipnet.IP.To4())
-// 				loggerTraceroute.Info("socketAddr: ", addr)
-// 				return addr, nil
-// 			}
-// 		}
-// 	}
-// 	return
-// }
 
 // runHop takes the task context, does the actual hop operation and returns a completed hop with stats or an error
 func (t *task) runHop() (hop Hop, err error) {
