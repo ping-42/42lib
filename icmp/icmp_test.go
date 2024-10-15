@@ -31,8 +31,8 @@ func Test_pingHost_general(t *testing.T) {
 	// thresholdPerRtt - this should cover the time for the execution
 	thresholdPerRtt := 200 * time.Millisecond
 
-	// mock message with default win payload
-	receivedMessage := []byte(fmt.Sprintf(`{"Id":"b3a74791-4e4f-4457-a601-fbd685d8e389","Name":"ICMP_TASK","SensorId":"b9dc3d20-256b-4ac7-8cae-2f6dc962e183","Opts":{"TargetDomain":"","TargetIPs":["%v", "%v"],"Count":%v,"Payload":"MDgwOTBhMGIwYzBkMGUwZjEwMTExMjEzMTQxNTE2MTcxODE5MWExYjFjMWQxZTFmMjAyMTIyMjMyNDI1MjYyNzI4MjkyYTJiMmMyZDJlMmYzMDMxMzIzMzM0MzUzNjM3"}}`, ipV4, ipV6, callsPerIP))
+	// mock message
+	receivedMessage := []byte(fmt.Sprintf(`{"Id":"b3a74791-4e4f-4457-a601-fbd685d8e389","Name":"ICMP_TASK","SensorId":"b9dc3d20-256b-4ac7-8cae-2f6dc962e183","Opts":{"TargetDomain":"","TargetIPs":["%v", "%v"],"Count":%v}}`, ipV4, ipV6, callsPerIP))
 
 	// create a context
 	ctx, cancel := context.WithCancel(context.Background())

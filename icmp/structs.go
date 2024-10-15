@@ -23,7 +23,6 @@ type Opts struct {
 	TargetDomain string   `json:"TargetDomain"`
 	TargetIPs    []net.IP `json:"TargetIPs"`
 	Count        int      `json:"Count"`
-	Payload      []byte   `json:"Payload"`
 }
 
 // GetId gets the id of the task, as received by the server
