@@ -31,8 +31,8 @@ func Test_pingHost_general(t *testing.T) {
 	// thresholdPerRtt - this should cover the time for the execution
 	thresholdPerRtt := 200 * time.Millisecond
 
-	// mock message with default win payload
-	receivedMessage := []byte(fmt.Sprintf(`{"Id":"b3a74791-4e4f-4457-a601-fbd685d8e389","Name":"ICMP_TASK","SensorId":"b9dc3d20-256b-4ac7-8cae-2f6dc962e183","Opts":{"TargetDomain":"","TargetIPs":["%v", "%v"],"Count":%v,"Payload":"MDgwOTBhMGIwYzBkMGUwZjEwMTExMjEzMTQxNTE2MTcxODE5MWExYjFjMWQxZTFmMjAyMTIyMjMyNDI1MjYyNzI4MjkyYTJiMmMyZDJlMmYzMDMxMzIzMzM0MzUzNjM3"}}`, ipV4, ipV6, callsPerIP))
+	// mock message
+	receivedMessage := []byte(fmt.Sprintf(`{"Id":"b3a74791-4e4f-4457-a601-fbd685d8e389","Name":"ICMP_TASK","SensorId":"b9dc3d20-256b-4ac7-8cae-2f6dc962e183","Opts":{"TargetDomain":"","TargetIPs":["%v", "%v"],"Count":%v}}`, ipV4, ipV6, callsPerIP))
 
 	// create a context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -69,7 +69,7 @@ func Test_pingHost_general(t *testing.T) {
 	assert.Equal(t, resIpV4.IPAddr, net.ParseIP(ipV4))
 	assert.Equal(t, resIpV4.PacketsSent, callsPerIP)
 	assert.Equal(t, resIpV4.PacketsReceived, callsPerIP)
-	assert.Equal(t, resIpV4.BytesWritten, 312) // the bytes count of Payload structured as json summer per all callsPerIP(Payload * callsPerIP)
+	assert.Equal(t, resIpV4.BytesWritten, 318) // the bytes count of Payload structured as json summer per all callsPerIP(Payload * callsPerIP)
 	assert.Equal(t, resIpV4.BytesRead, readBytesPerCall*callsPerIP)
 	assert.Equal(t, resIpV4.Loss, float64(0))
 	assert.Equal(t, resIpV4.FailureMessages, []string(nil))
@@ -94,7 +94,7 @@ func Test_pingHost_general(t *testing.T) {
 	assert.Equal(t, resIpV6.IPAddr, net.ParseIP(ipV6))
 	assert.Equal(t, resIpV6.PacketsSent, callsPerIP)
 	assert.Equal(t, resIpV6.PacketsReceived, callsPerIP)
-	assert.Equal(t, resIpV6.BytesWritten, 312) // the bytes count of Payload structured as json summer per all callsPerIP(Payload * callsPerIP)
+	assert.Equal(t, resIpV6.BytesWritten, 318) // the bytes count of Payload structured as json summer per all callsPerIP(Payload * callsPerIP)
 	assert.Equal(t, resIpV6.BytesRead, readBytesPerCall*callsPerIP)
 	assert.Equal(t, resIpV6.Loss, float64(0))
 	assert.Equal(t, resIpV6.FailureMessages, []string(nil))

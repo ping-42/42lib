@@ -168,19 +168,28 @@ func createConnV6() (conn *icmp.PacketConn, err error) {
 
 // createICMPMessage takes the task context ICMP type and returns an icmp message with the given type
 func (t task) createICMPMessage(ctx context.Context, msgType icmp.Type) (*icmp.Message, error) {
-	// rand int64 for the icmp message id
+
+	// generate rand int64 for the icmp message id
 	randInt, err := randInt()
 	if err != nil {
-		loggerIcmp.Error("could not generate random int64: ", err)
+		loggerIcmp.Error("error generating random int for ICMP message: ", err)
 		return nil, err
 	}
+
+	// marshal default win payload into bytes
+	payload, err := json.Marshal(winPayloadString)
+	if err != nil {
+		loggerIcmp.Error("error marshaling ICMP message payload: ", err)
+		return nil, err
+	}
+
 	return &icmp.Message{
 		Type: msgType,
 		Code: 0,
 		Body: &icmp.Echo{
 			ID:   randInt,
 			Seq:  1,
-			Data: t.Payload,
+			Data: payload,
 		},
 	}, nil
 }
