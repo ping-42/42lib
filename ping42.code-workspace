@@ -39,7 +39,7 @@
 				"program": "/workspaces/sensor/"
 			},
 			{
-				"name": "Server-Run",
+				"name": "Server",
 				"type": "go",
 				"request": "launch",
 				"mode": "auto",
