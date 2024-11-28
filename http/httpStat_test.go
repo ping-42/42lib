@@ -32,7 +32,7 @@ func TestRun(t *testing.T) {
 
 func TestHTTPStat_HTTPS(t *testing.T) {
 	var opts = Opts{
-		TargetDomain: TestDomainHTTPS,
+		URL: TestDomainHTTPS,
 	}
 	var result Result
 	req, err := NewRequest(opts, &result)
@@ -68,7 +68,7 @@ func TestHTTPStat_HTTPS(t *testing.T) {
 
 func TestHTTPStat_HTTP(t *testing.T) {
 	var opts = Opts{
-		TargetDomain: TestDomainHTTP,
+		URL: TestDomainHTTP,
 	}
 	var result Result
 	req, err := NewRequest(opts, &result)
@@ -133,7 +133,7 @@ func TestHTTPStat_KeepAlive(t *testing.T) {
 	}
 
 	var opts = Opts{
-		TargetDomain: TestDomainHTTPS,
+		URL: TestDomainHTTPS,
 	}
 
 	var result Result

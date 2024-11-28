@@ -42,7 +42,7 @@ func NewRequest(opts Opts, result *Result) (reqWithContext *http.Request, err er
 		}
 	}
 
-	req, err := http.NewRequest(opts.HttpMethod, opts.TargetDomain, &requestBody)
+	req, err := http.NewRequest(opts.HttpMethod, opts.URL, &requestBody)
 	if err != nil {
 		err = fmt.Errorf("NewRequest failed:%v", err)
 		return
