@@ -38,7 +38,7 @@ type task struct {
 
 // Opts represents the dbs collection of parameters
 type Opts struct {
-	Host          string
+	Host          string `json:"Host"`
 	Proto         string
 	GetSocketInfo func(conn *net.TCPConn) (*unix.TCPInfo, error)        `json:"-"`
 	GetDnsConn    func(addr, proto string, port int) (*dns.Conn, error) `json:"-"`

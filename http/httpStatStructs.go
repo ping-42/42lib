@@ -19,12 +19,12 @@ type task struct {
 	Opts `json:"HttpOpts"`
 }
 
-// Opts represents the dbs collection of parameters
+// Opts represents the HTTP parameter envelope
 type Opts struct {
-	TargetDomain   string
-	HttpMethod     string
-	RequestHeaders http.Header
-	RequestBody    []byte
+	URL            string      `json:"URL"`
+	HttpMethod     string      `json:"HttpMethod"`
+	RequestHeaders http.Header `json:"RequestHeaders"`
+	RequestBody    []byte      `json:"RequestBody"`
 }
 
 // GetId gets the id of the task, as received by the server

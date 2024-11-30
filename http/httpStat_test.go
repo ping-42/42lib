@@ -16,7 +16,7 @@ const (
 
 func TestRun(t *testing.T) {
 	// The server/endpoint is not mocked!
-	receivedMessage := []byte(`{"Id":"51395b2a-b09d-4a1b-87f5-7ca1a9039aa3","Name":"HTTP_TEST","SensorId":"e26e85a8-aa99-43d0-8e1a-78b6056449a2","HttpOpts":{"TargetDomain":"https://google.com","HttpMethod":"GET","RequestHeaders":{"Content-Type":["application/json"]},"RequestBody":"c29tZSB0ZXN0IGJvZHk="}}`)
+	receivedMessage := []byte(`{"Id":"51395b2a-b09d-4a1b-87f5-7ca1a9039aa3","Name":"HTTP_TEST","SensorId":"e26e85a8-aa99-43d0-8e1a-78b6056449a2","HttpOpts":{"URL":"https://google.com","HttpMethod":"GET","RequestHeaders":{"Content-Type":["application/json"]},"RequestBody":"c29tZSB0ZXN0IGJvZHk="}}`)
 	httpTask, err := NewTaskFromBytes(receivedMessage)
 	if err != nil {
 		t.Fatal("NewTaskFromBytes failed:", err)
@@ -32,7 +32,7 @@ func TestRun(t *testing.T) {
 
 func TestHTTPStat_HTTPS(t *testing.T) {
 	var opts = Opts{
-		TargetDomain: TestDomainHTTPS,
+		URL: TestDomainHTTPS,
 	}
 	var result Result
 	req, err := NewRequest(opts, &result)
@@ -68,7 +68,7 @@ func TestHTTPStat_HTTPS(t *testing.T) {
 
 func TestHTTPStat_HTTP(t *testing.T) {
 	var opts = Opts{
-		TargetDomain: TestDomainHTTP,
+		URL: TestDomainHTTP,
 	}
 	var result Result
 	req, err := NewRequest(opts, &result)
@@ -133,7 +133,7 @@ func TestHTTPStat_KeepAlive(t *testing.T) {
 	}
 
 	var opts = Opts{
-		TargetDomain: TestDomainHTTPS,
+		URL: TestDomainHTTPS,
 	}
 
 	var result Result
