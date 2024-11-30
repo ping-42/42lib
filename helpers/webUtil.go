@@ -21,6 +21,9 @@ func ExtractDomainFromUrl(u string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if parsed.Host == "" {
+		return u, nil
+	}
 
 	return parsed.Host, nil
 }

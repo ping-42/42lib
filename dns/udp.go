@@ -49,7 +49,7 @@ func (t task) dnsQueryUDP4(ctx context.Context, nameserver DnsNameServer) (Resul
 	m.Question[0] = dns.Question{Name: dns.Fqdn(hostname), Qtype: qt, Qclass: qc}
 	m.Id = dns.Id()
 
-	// r, rtt, err := t.DnsUdpClient.ExchangeContext(ctx, m, nameserver.getAddrPort())
+	// TODO: ctx r, rtt, err := t.DnsUdpClient.ExchangeContext(ctx, m, nameserver.getAddrPort())
 	r, rtt, err := t.DnsUdpClient.Exchange(m, nameserver.getAddrPort())
 	if err != nil {
 		logger.LogError(err.Error(), "UDP exchange error", dnsLogger)

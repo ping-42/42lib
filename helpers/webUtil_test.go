@@ -30,6 +30,12 @@ var testCases = []struct {
 		expectedUrl: "www.google.com",
 		expectedErr: nil,
 	},
+	{
+		name:        "should work without scheme",
+		inputUrl:    "google.com",
+		expectedUrl: "google.com",
+		expectedErr: nil,
+	},
 }
 
 func TestDomainExtraction(t *testing.T) {
