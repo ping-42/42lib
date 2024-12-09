@@ -15,7 +15,7 @@ const TaskName = "TRACEROUTE_TASK"
 type task struct {
 	sensor.Task
 	Opts    `json:"Opts"`
-	SysUnix SysUnix
+	SysUnix SysUnix `json:"-"`
 }
 
 // Opts for the task
