@@ -239,6 +239,13 @@ func TestTracerouteTaskFromModelMocked(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
+/*
+unmarshal fail from docker log
+time="2024-12-04T21:13:22Z" level=info msg="received task:{\"Id\":\"b08206cf-ba52-419d-9c1b-8391eb8a2361\",\"Name\":\"TRACEROUTE_TASK\",\"SensorId\":\"98952434-b6fe-465e-8d9b-8bca56e99873\",\"Opts\":{\"Port\":33434,\"Dest\":\"8.8.8.8\",\"CurrentAddr\":\"\",\"CurrentHost\":null,\"ReceiveSocket\":0,\"SendSocket\":0,\"FirstHop\":1,\"MaxHops\":64,\"Timeout\":500,\"PacketSize\":52,\"Packet\":null,\"Ttl\":0,\"Retries\":3},\"SysUnix\":{}}" testType=sensor
+time="2024-12-04T21:13:22Z" level=error msg="error in factoryTask()" error="traceroute.NewTaskFromBytes Unmarshal err task:{\"Id\":\"b08206cf-ba52-419d-9c1b-8391eb8a2361\",\"Name\":\"TRACEROUTE_TASK\",\"SensorId\":\"98952434-b6fe-465e-8d9b-8bca56e99873\",\"Opts\":{\"Port\":33434,\"Dest\":\"8.8.8.8\",\"CurrentAddr\":\"\",\"CurrentHost\":null,\"ReceiveSocket\":0,\"SendSocket\":0,\"FirstHop\":1,\"MaxHops\":64,\"Timeout\":500,\"PacketSize\":52,\"Packet\":null,\"Ttl\":0,\"Retries\":3},\"SysUnix\":{}}, json: cannot unmarshal object into Go struct field task.SysUnix of type traceroute.SysUnix" testType=sensor
+time="2024-12-04T21:14:22Z" level=info msg="received task:{\"Id\":\"3a923e95-6991-4d94-817a-ecffd6bed1bb\",\"Name\":\"TRACEROUTE_TASK\",\"SensorId\":\"98952434-b6fe-465e-8d9b-8bca56e99873\",\"Opts\":{\"Port\":33434,\"Dest\":\"8.8.8.8\",\"CurrentAddr\":\"\",\"CurrentHost\":null,\"ReceiveSocket\":0,\"SendSocket\":0,\"FirstHop\":1,\"MaxHops\":64,\"Timeout\":500,\"PacketSize\":52,\"Packet\":null,\"Ttl\":0,\"Retries\":3},\"SysUnix\":{}}" testType=sensor
+*/
+
 // func TestRunHop(t *testing.T) {
 // 	receivedMessage := []byte(`{"Id":"3b241101-e2bb-4255-8caf-4136c566a964","Name":"TRACEROUTE_TASK","SensorID":"3b241101-e2bb-4255-8caf-4136c566a964","Opts":{"Port":33434,"Dest":"8.8.8.8","FirstHop":1,"MaxHops":64,"Timeout":500,"PacketSize":52,"Retries":3}}`)
 
