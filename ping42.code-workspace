@@ -36,6 +36,7 @@
 				"type": "go",
 				"request": "launch",
 				"mode": "auto",
+				"asRoot": true,
 				"program": "/workspaces/sensor/"
 			},
 			{
