@@ -13,7 +13,7 @@ require (
 	github.com/miekg/dns v1.1.63
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.36.0
 	golang.org/x/sys v0.30.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
