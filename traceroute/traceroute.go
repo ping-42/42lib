@@ -252,7 +252,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 		res.Hops = append(res.Hops, hop)
 		t.TTL += 1
 		if t.TTL > t.MaxHops || t.CurrentAddr.Equal(t.Dest) {
-			loggerTraceroute.Infof("res: %+v", res)
+			loggerTraceroute.Debugf("res: %+v", res)
 			return res, nil
 		}
 	}
