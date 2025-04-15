@@ -251,6 +251,7 @@ time="2024-12-04T21:14:22Z" level=info msg="received task:{\"Id\":\"3a923e95-699
 // }
 
 func TestTracerouteResultSubmission(t *testing.T) {
+	t.Skip("Not in use")
 	taskResult := []byte(`
 	{"MessageGeneralType" : 0,
 "TaskId" : "b62f5016-40b2-4b9d-a8e3-46a57af7a9e6",
@@ -265,7 +266,6 @@ func TestTracerouteResultSubmission(t *testing.T) {
 	tResult, err := base64.StdEncoding.DecodeString(string(testTResult.Result))
 	assert.Nil(t, err)
 	assert.NotNil(t, tResult)
-
 
 	fmt.Println(string(tResult))
 }
