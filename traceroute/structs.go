@@ -47,13 +47,13 @@ type SysUnix interface {
 	NsecToTimeval(nsec int64) unix.Timeval
 }
 
-//nolint
+// nolint
 // GetId gets the id of the task, as received by the server
 func (t task) GetId() uuid.UUID {
 	return t.Task.Id
 }
 
-//nolint
+// nolint
 // GetSensorId gets the id of the sensor, as received by the server
 func (t task) GetSensorId() uuid.UUID {
 	return t.Task.SensorId
