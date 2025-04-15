@@ -41,14 +41,14 @@ func (t task) Run(ctx context.Context) (res []byte, err error) {
 
 	err = resDo.Body.Close()
 	if err != nil {
-		err = fmt.Errorf("res.Body.Close failed:%v", err)
+		err = fmt.Errorf("res.Body.Close failed: %v", err)
 		return
 	}
 	result.End(time.Now())
 
 	res, err = json.Marshal(result)
 	if err != nil {
-		err = fmt.Errorf("Marshal failed:%v", err)
+		err = fmt.Errorf("marshalling failed: %v", err)
 		return
 	}
 	return

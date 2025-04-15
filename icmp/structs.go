@@ -25,11 +25,13 @@ type Opts struct {
 	Count        int      `json:"Count"`
 }
 
+//nolint
 // GetId gets the id of the task, as received by the server
 func (t task) GetId() uuid.UUID {
 	return t.Task.Id
 }
 
+//nolint
 func (t task) GetSensorId() uuid.UUID {
 	return t.Task.SensorId
 }

@@ -45,6 +45,7 @@ type Opts struct {
 	DnsUdpClient  *dns.Client
 }
 
+//nolint
 // GetId gets the id of the task, as received by the server
 func (t task) GetId() uuid.UUID {
 	return t.Task.Id
@@ -54,6 +55,7 @@ func (t task) GetName() sensor.TaskName {
 	return TaskName
 }
 
+//nolint
 func (t task) GetSensorId() uuid.UUID {
 	return t.Task.SensorId
 }

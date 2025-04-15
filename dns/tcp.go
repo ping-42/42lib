@@ -41,15 +41,16 @@ func (t task) dnsQueryTCP4(ctx context.Context, nameserver DnsNameServer) (Resul
 	if co == nil {
 		if t.GetDnsConn == nil {
 			errMsg := "dns conn getter nil pointer"
-			logger.LogError(errMsg, "Couldn't establish dns connection", dnsLogger)
+			logger.LogError(errMsg, "couldn't establish DNS connection", dnsLogger)
 			return Result{}, fmt.Errorf("%v", errMsg)
 		}
 
 		co, err = t.GetDnsConn(nameserver.addr, "tcp", nameserver.port)
 		if err != nil {
-			logger.LogError(err.Error(), "Couldn't establish dns connection", dnsLogger)
+			logger.LogError(err.Error(), "couldn't establish DNS connection", dnsLogger)
 			return Result{}, err
 		}
+		//nolint
 		defer co.Close()
 	}
 

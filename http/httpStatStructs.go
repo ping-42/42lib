@@ -27,6 +27,7 @@ type Opts struct {
 	RequestBody    []byte      `json:"RequestBody"`
 }
 
+//nolint
 // GetId gets the id of the task, as received by the server
 func (t task) GetId() uuid.UUID {
 	return t.Task.Id
