@@ -45,6 +45,7 @@
   "postCreateCommand": ".devcontainer/create.sh",
   "postStartCommand": ".devcontainer/update.sh",
   "remoteUser": "vscode",
+  //"runArgs": ["--net=host", "--privileged"],
 
   "mounts": [
     "type=volume,source=gh-auth-config,target=/home/vscode/.config/gh"

@@ -6,12 +6,12 @@ on:
     branches:
       - main
     paths-ignore:
-      - '*.md'
-      - '.github/**'
-      - '.devcontainer/**'
-      - '*.code-workspace'
+      - "*.md"
+      - .github/**
+      - .devcontainer/**
+      - "*.code-workspace"
   pull_request:
-    types: [ assigned, opened, synchronize, reopened ]
+    types: [assigned, opened, synchronize, reopened]
 
 # By default, no permissions are given to any job's GITHUB_TOKEN
 permissions:
@@ -107,7 +107,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-
       - name: Setting up Go
         uses: actions/setup-go@v5
         with:
@@ -123,13 +122,12 @@ jobs:
   create-tag:
     name: Ship a release
     runs-on: ubuntu-22.04
-    needs: [vettest,golangci,gosec,govuln]
+    needs: [vettest, golangci, gosec, govuln]
     permissions:
       contents: write
-    if:
-      contains('
-        refs/heads/master
-        refs/heads/main
+    if: contains('
+      refs/heads/master
+      refs/heads/main
       ', github.ref)
     steps:
       - name: Checkout code
