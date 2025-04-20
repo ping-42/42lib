@@ -185,9 +185,9 @@ func (t *task) runHop() (hop Hop, err error) {
 	hop.Success = false
 	hop.ElapsedTime = time.Since(start)
 	hop.TTL = t.TTL
-	hop.Error = fmt.Errorf("max retries exceeded for hop")
+	hop.ErrorMessage = "max retries exceeded for hop"
 	loggerTraceroute.Infof("hop: %+v", hop)
-	return hop, hop.Error
+	return hop, fmt.Errorf("%s", hop.ErrorMessage)
 }
 
 // traceroute is the main function that performs the traceroute
