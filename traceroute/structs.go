@@ -70,7 +70,7 @@ type Hop struct {
 	BytesReceived int
 	ElapsedTime   time.Duration
 	TTL           int
-	Error         error
+	ErrorMessage  string
 }
 
 type Result struct {
