@@ -364,9 +364,11 @@ func runDnsTask(ctx context.Context, t task) (dnsRes dns.Result, err error) {
 	dnsTask.Name = dns.TaskName
 	h, err := helpers.ExtractDomainFromUrl(t.TargetDomain)
 	if err != nil {
-		err = fmt.Errorf("ExtractDomainFromUrl err:%v, %v", err, t.TargetDomain)
+		err = fmt.Errorf("extractDomainFromUrl err: %v, %v", err, t.TargetDomain)
 		return
 	}
+
+	//nolint
 	dnsTask.Opts.Host = h
 
 	dnsResb, err := dnsTask.Run(ctx)
@@ -377,7 +379,7 @@ func runDnsTask(ctx context.Context, t task) (dnsRes dns.Result, err error) {
 	dnsRes = dns.Result{}
 	err = json.Unmarshal(dnsResb, &dnsRes)
 	if err != nil {
-		err = fmt.Errorf("Unmarshal dns.Result{} in icmp Run err:%v", err)
+		err = fmt.Errorf("unmarshal dns.Result{} in icmp Run err:%v", err)
 		return
 	}
 	return

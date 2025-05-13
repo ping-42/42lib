@@ -159,6 +159,7 @@ func (t task) runWithProto(ctx context.Context, ns DnsNameServer) (res Result, e
 	return
 }
 
+//nolint
 func NewEmptyTask() (t task) {
 	// set default opts
 	t.Opts.DnsUdpClient = defaultOpts.DnsUdpClient
@@ -170,6 +171,7 @@ func NewEmptyTask() (t task) {
 	return
 }
 
+//nolint
 // NewTaskFromBytes used in sensor for building the task from the received bytes
 func NewTaskFromBytes(msg []byte) (t task, err error) {
 

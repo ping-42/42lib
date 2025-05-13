@@ -34,7 +34,7 @@
     "ghcr.io/devcontainers-contrib/features/gh-cli:1": {},
     // Ubuntu apt-get packages to install
     "ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {
-      "packages": ["iputils-ping", "postgresql-client", "software-properties-common"]
+      "packages": ["iputils-ping", "postgresql-client", "software-properties-common", "traceroute"]
     },
     // Docker Compose and friends
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
@@ -45,6 +45,7 @@
   "postCreateCommand": ".devcontainer/create.sh",
   "postStartCommand": ".devcontainer/update.sh",
   "remoteUser": "vscode",
+  "runArgs": ["--privileged"],
 
   "mounts": [
     "type=volume,source=gh-auth-config,target=/home/vscode/.config/gh"
@@ -103,7 +104,6 @@
     "vscode": {
       "extensions": [
         "golang.go",
-        "trunk.io",
         "vscode-icons-team.vscode-icons",
         "yzhang.markdown-all-in-one",
         "github.vscode-github-actions",

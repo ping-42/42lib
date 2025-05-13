@@ -213,6 +213,8 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 		loggerTraceroute.Error("error creating socket: ", err)
 		return res, err
 	}
+
+	//nolint
 	defer t.SysUnix.Close(t.ReceiveSocket)
 
 	// bind the receive socket to 0.0.0.0 to listen on all interfaces
@@ -235,6 +237,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 		loggerTraceroute.Error("error creating socket: ", err)
 		return res, err
 	}
+	//nolint
 	defer t.SysUnix.Close(t.SendSocket)
 
 	// start the main loop
@@ -252,7 +255,7 @@ func (t task) traceroute(ctx context.Context) (res Result, err error) {
 		res.Hops = append(res.Hops, hop)
 		t.TTL += 1
 		if t.TTL > t.MaxHops || t.CurrentAddr.Equal(t.Dest) {
-			loggerTraceroute.Infof("res: %+v", res)
+			loggerTraceroute.Debugf("res: %+v", res)
 			return res, nil
 		}
 	}
