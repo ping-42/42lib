@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setting up Go
         uses: actions/setup-go@v5
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setting up Go
         uses: actions/setup-go@v5
@@ -81,7 +81,7 @@ jobs:
       GO111MODULE: on
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setting up Go
         uses: actions/setup-go@v5
@@ -105,7 +105,7 @@ jobs:
       GO111MODULE: on
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setting up Go
         uses: actions/setup-go@v5
@@ -131,7 +131,7 @@ jobs:
       ', github.ref)
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ github.token }}
 
